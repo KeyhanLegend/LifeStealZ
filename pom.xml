@@ -52,10 +52,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>16</source>
                     <target>16</target>
+                    <annotationProcessorPaths>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -108,6 +110,10 @@
                             <pattern>org.reflections</pattern>
                             <shadedPattern>com.zetaplugins.lifestealz.libs.reflections</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>com.tcoded.folialib</pattern>
+                            <shadedPattern>com.zetaplugins.lifestealz.lib.folialib</shadedPattern>
+                        </relocation>
                     </relocations>
                     <filters>
                         <filter>
@@ -123,6 +129,12 @@
                             </includes>
                         </filter>
                         <filter>
+                            <artifact>com.tcoded:FoliaLib</artifact>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                        </filter>
+                        <filter>
                             <artifact>*:*</artifact>
                             <excludes>
                                 <exclude>META-INF/*.SF</exclude>
@@ -131,12 +143,7 @@
                             </excludes>
                         </filter>
                     </filters>
-                    <artifactSet>
-                        <includes>
-                            <include>com.zaxxer:HikariCP</include>
-                            <include>com.zetaplugins:zetacore</include>
-                        </includes>
-                    </artifactSet>
+
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -178,6 +185,10 @@
         <repository>
             <id>zetaplugins</id>
             <url>https://maven.zetaplugins.com/</url>
+        </repository>
+        <repository>
+            <id>tcoded-releases</id>
+            <url>https://repo.tcoded.com/releases</url>
         </repository>
     </repositories>
 
@@ -243,10 +254,10 @@
             <version>1.1.1</version>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
-            <scope>provided</scope>
+            <groupId>com.tcoded</groupId>
+            <artifactId>FoliaLib</artifactId>
+            <version>0.4.3</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>

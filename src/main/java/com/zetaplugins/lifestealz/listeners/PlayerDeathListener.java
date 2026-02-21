@@ -48,7 +48,8 @@ public final class PlayerDeathListener implements Listener {
         final Player killer = player.getKiller();
 
         // WorldGuard check
-        if (plugin.hasWorldGuard() && !WorldGuardManager.checkHeartLossFlag(player)) return;
+        if (plugin.hasWorldGuard() && !WorldGuardManager.checkHeartLossFlag(player))
+            return;
 
         UUID playerUUID = player.getUniqueId();
         if (player.hasMetadata("combat_log_npc")) {
@@ -60,10 +61,13 @@ public final class PlayerDeathListener implements Listener {
         final boolean isDeathByPlayer = killer != null && !killer.getUniqueId().equals(playerUUID);
 
         // Handle anti-alt logic first
-        if (handleAntiAltLogic(event, player, killer)) return;
+        if (handleAntiAltLogic(event, player, killer))
+            return;
 
-        boolean looseHeartsToNature = plugin.getConfig().getBoolean("looseHeartsToNature") || plugin.getConfig().getInt("heartsPerKill") <= 0;
-        boolean looseHeartsToPlayer = plugin.getConfig().getBoolean("looseHeartsToPlayer") || plugin.getConfig().getInt("heartsPerNaturalDeath") <= 0;
+        boolean looseHeartsToNature = plugin.getConfig().getBoolean("looseHeartsToNature")
+                || plugin.getConfig().getInt("heartsPerKill") <= 0;
+        boolean looseHeartsToPlayer = plugin.getConfig().getBoolean("looseHeartsToPlayer")
+                || plugin.getConfig().getInt("heartsPerNaturalDeath") <= 0;
 
         // Natural death or death by player
         if ((!isDeathByPlayer && looseHeartsToNature) || (isDeathByPlayer && looseHeartsToPlayer)) {
@@ -71,7 +75,8 @@ public final class PlayerDeathListener implements Listener {
         }
     }
 
-    private void handleHeartLoss(PlayerDeathEvent event, Player player, Player killer, PlayerData playerData, boolean isDeathByPlayer) {
+    private void handleHeartLoss(PlayerDeathEvent event, Player player, Player killer, PlayerData playerData,
+            boolean isDeathByPlayer) {
         final double minHearts = plugin.getConfig().getInt("minHearts") * 2;
 
         double healthPerKill = plugin.getConfig().getInt("heartsPerKill") * 2;
@@ -83,13 +88,15 @@ public final class PlayerDeathListener implements Listener {
         boolean killerHasBypass = isDeathByPlayer && killer != null && restrictedHeartGainByBypass(killer);
 
         if (victimHasBypass || killerHasBypass) {
-            ZPlayerBypassDeathEvent bypassEvent = 
-                    new ZPlayerBypassDeathEvent(event, killer, victimHasBypass, killerHasBypass);
+            ZPlayerBypassDeathEvent bypassEvent = new ZPlayerBypassDeathEvent(event, killer, victimHasBypass,
+                    killerHasBypass);
             Bukkit.getPluginManager().callEvent(bypassEvent);
 
             if (!bypassEvent.isCancelled()) {
-                if (victimHasBypass) player.sendMessage(bypassEvent.getMessageToVictim());
-                if (killerHasBypass && killer != null) killer.sendMessage(bypassEvent.getMessageToKiller());
+                if (victimHasBypass)
+                    player.sendMessage(bypassEvent.getMessageToVictim());
+                if (killerHasBypass && killer != null)
+                    killer.sendMessage(bypassEvent.getMessageToKiller());
                 return; // Fully blocks heart loss/gain
             }
         }
@@ -99,23 +106,25 @@ public final class PlayerDeathListener implements Listener {
         boolean killerInGracePeriod = isDeathByPlayer && restrictedHeartGainByGracePeriod(killer);
 
         if (victimInGracePeriod || killerInGracePeriod) {
-            ZPlayerGracePeriodDeathEvent graceEvent =
-                    new ZPlayerGracePeriodDeathEvent(event, killer, victimInGracePeriod, killerInGracePeriod);
+            ZPlayerGracePeriodDeathEvent graceEvent = new ZPlayerGracePeriodDeathEvent(event, killer,
+                    victimInGracePeriod, killerInGracePeriod);
             Bukkit.getPluginManager().callEvent(graceEvent);
 
             if (!graceEvent.isCancelled()) {
-                if (victimInGracePeriod) player.sendMessage(graceEvent.getMessageToVictim());
-                if (killerInGracePeriod && killer != null) killer.sendMessage(graceEvent.getMessageToKiller());
-                if (victimInGracePeriod) return; // Only victim in grace fully blocks heart loss
+                if (victimInGracePeriod)
+                    player.sendMessage(graceEvent.getMessageToVictim());
+                if (killerInGracePeriod && killer != null)
+                    killer.sendMessage(graceEvent.getMessageToKiller());
+                if (victimInGracePeriod)
+                    return; // Only victim in grace fully blocks heart loss
             }
         }
-
 
         boolean preventKillerGain = false;
         boolean droppedAtKiller = false;
 
         if (isDeathByPlayer && !killerInGracePeriod && !killerHasBypass) {
-            
+
             if (handleHeartGainCooldown(event, player, killer, healthToLoose)) {
                 preventKillerGain = true;
                 if (plugin.getConfig().getBoolean("heartGainCooldown.dropOnCooldown")) {
@@ -131,7 +140,8 @@ public final class PlayerDeathListener implements Listener {
         }
 
         if (playerData.getMaxHealth() - healthToLoose <= minHearts) {
-            handleElimination(event, player, playerData, killer, isDeathByPlayer, healthToLoose, preventKillerGain, droppedAtKiller);
+            handleElimination(event, player, playerData, killer, isDeathByPlayer, healthToLoose, preventKillerGain,
+                    droppedAtKiller);
             return;
         }
 
@@ -148,12 +158,13 @@ public final class PlayerDeathListener implements Listener {
 
         if (heartGainCooldownEnabled
                 && CooldownManager.lastHeartGain.get(killer.getUniqueId()) != null
-                && CooldownManager.lastHeartGain.get(killer.getUniqueId()) + heartGainCooldown > System.currentTimeMillis()) {
+                && CooldownManager.lastHeartGain.get(killer.getUniqueId()) + heartGainCooldown > System
+                        .currentTimeMillis()) {
 
-            long timeLeft = (CooldownManager.lastHeartGain.get(killer.getUniqueId()) + heartGainCooldown - System.currentTimeMillis()) / 1000;
+            long timeLeft = (CooldownManager.lastHeartGain.get(killer.getUniqueId()) + heartGainCooldown
+                    - System.currentTimeMillis()) / 1000;
 
-            ZPlayerHeartGainCooldownEvent cooldownEvent =
-                    new ZPlayerHeartGainCooldownEvent(event, killer, timeLeft);
+            ZPlayerHeartGainCooldownEvent cooldownEvent = new ZPlayerHeartGainCooldownEvent(event, killer, timeLeft);
             cooldownEvent.setShouldDropHeartsInstead(plugin.getConfig().getBoolean("heartGainCooldown.dropOnCooldown"));
             Bukkit.getPluginManager().callEvent(cooldownEvent);
 
@@ -161,7 +172,8 @@ public final class PlayerDeathListener implements Listener {
                 killer.sendMessage(cooldownEvent.getCooldownMessage());
 
                 if (cooldownEvent.isShouldDropHeartsInstead()) {
-                    dropHeartsNaturally(killer.getLocation(), (int) (healthGain / 2), CustomItemManager.createHeartGainCooldownHeart());
+                    dropHeartsNaturally(killer.getLocation(), (int) (healthGain / 2),
+                            CustomItemManager.createHeartGainCooldownHeart());
                 }
                 return true; // Prevent normal heart gain
             }
@@ -174,14 +186,14 @@ public final class PlayerDeathListener implements Listener {
         PlayerData killerPlayerData = plugin.getStorage().load(killer.getUniqueId());
 
         if (killerPlayerData.getMaxHealth() + healthGain > maxHearts) {
-            ZPlayerMaxHeartsReachedEvent maxHeartsEvent =
-                    new ZPlayerMaxHeartsReachedEvent(event, killer, maxHearts);
+            ZPlayerMaxHeartsReachedEvent maxHeartsEvent = new ZPlayerMaxHeartsReachedEvent(event, killer, maxHearts);
             maxHeartsEvent.setShouldDropHeartsInstead(plugin.getConfig().getBoolean("dropHeartsIfMax"));
             Bukkit.getPluginManager().callEvent(maxHeartsEvent);
 
             if (!maxHeartsEvent.isCancelled()) {
                 if (maxHeartsEvent.isShouldDropHeartsInstead()) {
-                    dropHeartsNaturally(killer.getLocation(), (int) (healthGain / 2), CustomItemManager.createMaxHealthHeart());
+                    dropHeartsNaturally(killer.getLocation(), (int) (healthGain / 2),
+                            CustomItemManager.createMaxHealthHeart());
                 } else {
                     killer.sendMessage(maxHeartsEvent.getMaxHeartsMessage());
                 }
@@ -191,7 +203,8 @@ public final class PlayerDeathListener implements Listener {
         return false;
     }
 
-    private void handlePvPDeath(PlayerDeathEvent event, Player player, Player killer, PlayerData playerData, double healthToLoose, boolean preventKillerGain, boolean droppedAtKiller) {
+    private void handlePvPDeath(PlayerDeathEvent event, Player player, Player killer, PlayerData playerData,
+            double healthToLoose, boolean preventKillerGain, boolean droppedAtKiller) {
         double healthGain = healthToLoose;
 
         ZPlayerPvPDeathEvent pvpEvent = new ZPlayerPvPDeathEvent(event, killer, healthToLoose, healthGain);
@@ -213,7 +226,8 @@ public final class PlayerDeathListener implements Listener {
 
             // Killer gain or drops
             if (pvpEvent.isShouldDropHearts()) {
-                dropHeartsNaturally(player.getLocation(), (int) (pvpEvent.getHeartsToLose() / 2), CustomItemManager.createKillHeart());
+                dropHeartsNaturally(player.getLocation(), (int) (pvpEvent.getHeartsToLose() / 2),
+                        CustomItemManager.createKillHeart());
             } else if (pvpEvent.isKillerShouldGainHearts() && pvpEvent.getHeartsKillerGains() > 0) {
                 handleKillerHeartGainDirect(killer, pvpEvent.getHeartsKillerGains());
             }
@@ -224,9 +238,9 @@ public final class PlayerDeathListener implements Listener {
         }
     }
 
-    private void handleNaturalDeath(PlayerDeathEvent event, Player player, PlayerData playerData, double healthToLoose) {
-        ZPlayerNaturalDeathEvent naturalEvent =
-                new ZPlayerNaturalDeathEvent(event, healthToLoose);
+    private void handleNaturalDeath(PlayerDeathEvent event, Player player, PlayerData playerData,
+            double healthToLoose) {
+        ZPlayerNaturalDeathEvent naturalEvent = new ZPlayerNaturalDeathEvent(event, healthToLoose);
         naturalEvent.setShouldDropHearts(plugin.getConfig().getBoolean("dropHeartsNatural"));
         Bukkit.getPluginManager().callEvent(naturalEvent);
 
@@ -240,7 +254,8 @@ public final class PlayerDeathListener implements Listener {
 
             // Handle heart drops
             if (naturalEvent.isShouldDropHearts()) {
-                dropHeartsNaturally(player.getLocation(), (int) (naturalEvent.getHeartsToLose() / 2), CustomItemManager.createNaturalDeathHeart());
+                dropHeartsNaturally(player.getLocation(), (int) (naturalEvent.getHeartsToLose() / 2),
+                        CustomItemManager.createNaturalDeathHeart());
             }
 
             // Update death message if changed
@@ -250,41 +265,39 @@ public final class PlayerDeathListener implements Listener {
         }
     }
 
-    private void handleElimination(PlayerDeathEvent event, Player player, PlayerData playerData, Player killer, boolean isDeathByPlayer, double healthToLoose, boolean preventKillerGain, boolean droppedAtKiller) {
-        ZPlayerEliminationEvent eliminationEvent =
-                new ZPlayerEliminationEvent(event, killer);
+    private void handleElimination(PlayerDeathEvent event, Player player, PlayerData playerData, Player killer,
+            boolean isDeathByPlayer, double healthToLoose, boolean preventKillerGain, boolean droppedAtKiller) {
+        ZPlayerEliminationEvent eliminationEvent = new ZPlayerEliminationEvent(event, killer);
         eliminationEvent.setShouldBanPlayer(!plugin.getConfig().getBoolean("disablePlayerBanOnElimination"));
         eliminationEvent.setShouldAnnounceElimination(plugin.getConfig().getBoolean("announceElimination"));
 
         String messageKey = isDeathByPlayer ? "eliminationAnnouncement" : "eliminateionAnnouncementNature";
-        String defaultMessage = isDeathByPlayer ? "&c%player% &7has been eliminated by &c%killer%&7!" : "&c%player% &7has been eliminated!";
+        String defaultMessage = isDeathByPlayer ? "&c%player% &7has been eliminated by &c%killer%&7!"
+                : "&c%player% &7has been eliminated!";
         eliminationEvent.setEliminationMessage(MessageUtils.getAndFormatMsg(
                 false,
                 messageKey,
                 defaultMessage,
                 new MessageUtils.Replaceable("%player%", player.getName()),
-                new MessageUtils.Replaceable("%killer%", killer != null ? killer.getName() : "")
-        ));
+                new MessageUtils.Replaceable("%killer%", killer != null ? killer.getName() : "")));
 
         eliminationEvent.setKickMessage(MessageUtils.getAndFormatMsg(
                 false,
                 "eliminatedJoin",
-                "&cYou don't have any hearts left!"
-        ));
+                "&cYou don't have any hearts left!"));
 
         Bukkit.getPluginManager().callEvent(eliminationEvent);
 
         if (!eliminationEvent.isCancelled()) {
             // Execute elimination commands
             final List<String> elimCommands = plugin.getConfig().getStringList("eliminationCommands");
-            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            plugin.getFoliaLib().getScheduler().runAtEntityLater(player, () -> {
                 for (String command : elimCommands) {
                     plugin.getServer().dispatchCommand(
                             plugin.getServer().getConsoleSender(),
-                            command.replace("&player&", player.getName())
-                    );
+                            command.replace("&player&", player.getName()));
                 }
-            }, 1L);
+            }, null, 1L);
 
             boolean heartRewardOnElimination = plugin.getConfig().getBoolean("heartRewardOnElimination", true);
             if (heartRewardOnElimination) {
@@ -302,14 +315,16 @@ public final class PlayerDeathListener implements Listener {
                         }
                     } else {
                         if (droppedAtKiller || dropHeartsPlayer) {
-                            dropHeartsNaturally(killer.getLocation(), (int) (healthToLoose / 2), CustomItemManager.createKillHeart());
+                            dropHeartsNaturally(killer.getLocation(), (int) (healthToLoose / 2),
+                                    CustomItemManager.createKillHeart());
                         }
                     }
                 } else if (!isDeathByPlayer) {
                     // Natural death eliminations also drop hearts if enabled
                     boolean dropHeartsNatural = plugin.getConfig().getBoolean("dropHeartsNatural", true);
                     if (dropHeartsNatural) {
-                        dropHeartsNaturally(player.getLocation(), (int) (healthToLoose / 2), CustomItemManager.createNaturalDeathHeart());
+                        dropHeartsNaturally(player.getLocation(), (int) (healthToLoose / 2),
+                                CustomItemManager.createNaturalDeathHeart());
                     }
                 }
             }
@@ -324,11 +339,11 @@ public final class PlayerDeathListener implements Listener {
             }
 
             // Kick the player
-            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            plugin.getFoliaLib().getScheduler().runAtEntityLater(player, () -> {
                 if (player.isOnline()) { // Avoids trying to kick NPCs since they are not online
                     player.kick(eliminationEvent.getKickMessage());
                 }
-            }, 1L);
+            }, null, 1L);
 
             // Announce elimination
             if (eliminationEvent.isShouldAnnounceElimination()) {
@@ -337,7 +352,8 @@ public final class PlayerDeathListener implements Listener {
             }
 
             // Send webhook
-            plugin.getWebHookManager().sendWebhookMessage(WebHookManager.WebHookType.ELIMINATION, player.getName(), killer != null ? killer.getName() : "");
+            plugin.getWebHookManager().sendWebhookMessage(WebHookManager.WebHookType.ELIMINATION, player.getName(),
+                    killer != null ? killer.getName() : "");
 
             // Set player data to eliminated
             playerData.setMaxHealth(0.0);
@@ -356,14 +372,14 @@ public final class PlayerDeathListener implements Listener {
     }
 
     private boolean handleAntiAltLogic(PlayerDeathEvent event, Player player, @Nullable Player killer) {
-        if (killer == null || player.getUniqueId().equals(killer.getUniqueId())) return false;
+        if (killer == null || player.getUniqueId().equals(killer.getUniqueId()))
+            return false;
 
         final String victimIP = getPlayerIP(player);
         final String killerIP = getPlayerIP(killer);
 
         if (victimIP != null && victimIP.equals(killerIP) && plugin.getConfig().getBoolean("antiAlt.enabled")) {
-            ZPlayerAltKillEvent altEvent =
-                    new ZPlayerAltKillEvent(event, killer, victimIP);
+            ZPlayerAltKillEvent altEvent = new ZPlayerAltKillEvent(event, killer, victimIP);
             altEvent.setShouldPreventKill(plugin.getConfig().getBoolean("antiAlt.preventKill"));
             altEvent.setShouldLogAttempt(plugin.getConfig().getBoolean("antiAlt.logAttempt"));
             altEvent.setShouldSendMessage(plugin.getConfig().getBoolean("antiAlt.sendMessage"));
@@ -389,7 +405,8 @@ public final class PlayerDeathListener implements Listener {
 
     private String getPlayerIP(Player player) {
         InetSocketAddress inetSocketAddress = player.getAddress();
-        if (inetSocketAddress == null) return null;
+        if (inetSocketAddress == null)
+            return null;
         InetAddress address = inetSocketAddress.getAddress();
         return address.getHostAddress();
     }
@@ -402,9 +419,11 @@ public final class PlayerDeathListener implements Listener {
                 && Boolean.TRUE.equals(container.get(INVULNERABLE_KEY, PersistentDataType.BOOLEAN));
 
         for (int i = 0; i < amount; i++) {
-            Item item =  location.getWorld().dropItemNaturally(location, itemStack);
-            if (shouldHaveUnlimitedLifetime) item.setUnlimitedLifetime(true);
-            if (shouldBeInvulnerable) item.setInvulnerable(true);
+            Item item = location.getWorld().dropItemNaturally(location, itemStack);
+            if (shouldHaveUnlimitedLifetime)
+                item.setUnlimitedLifetime(true);
+            if (shouldBeInvulnerable)
+                item.setInvulnerable(true);
         }
     }
 

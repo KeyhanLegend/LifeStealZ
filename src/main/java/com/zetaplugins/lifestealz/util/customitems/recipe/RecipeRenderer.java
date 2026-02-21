@@ -15,32 +15,39 @@ import com.zetaplugins.lifestealz.util.customitems.CustomItemManager;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
+
 final class RecipeRenderer {
     private final LifeStealZ plugin;
-    private final Map<Inventory, List<Integer>> animationMap = new HashMap<>();
+    private final Map<Inventory, List<WrappedTask>> animationMap = new HashMap<>();
 
     public RecipeRenderer(LifeStealZ plugin) {
         this.plugin = plugin;
     }
 
     /**
-     * Saves that an animation was started in an inventory to stop them when the inventory is closed
+     * Saves that an animation was started in an inventory to stop them when the
+     * inventory is closed
+     * 
      * @param inventory The inventory to save the animation for
-     * @param taskId The task id of the animation
+     * @param taskId    The task id of the animation
      */
-    private void addAnimation(Inventory inventory, int taskId) {
-        if (animationMap.containsKey(inventory)) animationMap.get(inventory).add(taskId);
-        else animationMap.put(inventory, new ArrayList<>(Collections.singletonList(taskId)));
+    private void addAnimation(Inventory inventory, WrappedTask task) {
+        if (animationMap.containsKey(inventory))
+            animationMap.get(inventory).add(task);
+        else
+            animationMap.put(inventory, new ArrayList<>(Collections.singletonList(task)));
     }
 
     /**
      * Cancels all animations for an inventory
+     * 
      * @param inventory The inventory to cancel the animations for
      */
     public void cancelAnimations(Inventory inventory) {
         if (animationMap.containsKey(inventory)) {
-            for (int taskId : animationMap.get(inventory)) {
-                Bukkit.getScheduler().cancelTask(taskId);
+            for (WrappedTask task : animationMap.get(inventory)) {
+                task.cancel();
             }
             animationMap.remove(inventory);
         }
@@ -48,6 +55,7 @@ final class RecipeRenderer {
 
     /**
      * Renders the recipe for a custom item
+     * 
      * @param player The player to render the recipe for
      * @param itemId The id of the item to render the recipe for
      */
@@ -58,8 +66,7 @@ final class RecipeRenderer {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "recipeNotCraftable",
-                    "&cThis item is not craftable!"
-            ));
+                    "&cThis item is not craftable!"));
             return;
         }
 
@@ -73,10 +80,12 @@ final class RecipeRenderer {
             openRecipeInventory(player, itemId, rowOne, rowTwo, rowThree);
         } else {
             ConfigurationSection recipeSection = config.getConfigurationSection(itemId + ".recipes");
-            if (recipeSection == null) return;
+            if (recipeSection == null)
+                return;
 
             String firstRecipeId = recipeSection.getKeys(false).stream().findFirst().orElse(null);
-            if (firstRecipeId == null) return;
+            if (firstRecipeId == null)
+                return;
 
             List<String> rowOne = recipeSection.getStringList(firstRecipeId + ".rowOne");
             List<String> rowTwo = recipeSection.getStringList(firstRecipeId + ".rowTwo");
@@ -88,8 +97,9 @@ final class RecipeRenderer {
 
     /**
      * Renders the recipe for a custom item
-     * @param player The player to render the recipe for
-     * @param itemId The id of the item to render the recipe for
+     * 
+     * @param player   The player to render the recipe for
+     * @param itemId   The id of the item to render the recipe for
      * @param recipeId The recipe id of the recipe to render
      */
     public void renderRecipe(Player player, String itemId, String recipeId) {
@@ -99,8 +109,7 @@ final class RecipeRenderer {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "recipeNotCraftable",
-                    "&cThis item is not craftable!"
-            ));
+                    "&cThis item is not craftable!"));
             return;
         }
 
@@ -108,8 +117,7 @@ final class RecipeRenderer {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "recipeNotFound",
-                    "&cThis recipe does not exist!"
-            ));
+                    "&cThis recipe does not exist!"));
             return;
         }
 
@@ -117,8 +125,7 @@ final class RecipeRenderer {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "recipeNotFound",
-                    "&cThis recipe does not exist!"
-            ));
+                    "&cThis recipe does not exist!"));
             return;
         }
 
@@ -129,16 +136,15 @@ final class RecipeRenderer {
         openRecipeInventory(player, itemId, rowOne, rowTwo, rowThree);
     }
 
-    private void openRecipeInventory(Player player, String itemId, List<String> rowOne, List<String> rowTwo, List<String> rowThree) {
+    private void openRecipeInventory(Player player, String itemId, List<String> rowOne, List<String> rowTwo,
+            List<String> rowThree) {
         Inventory inventory = Bukkit.createInventory(
                 null,
                 5 * 9,
                 MessageUtils.getAndFormatMsg(
                         false,
                         "recipeInventoryTitle",
-                        "&8Crafting recipe"
-                )
-        );
+                        "&8Crafting recipe"));
 
         inventory.setItem(40, CustomItemManager.createCloseItem());
 
@@ -147,7 +153,8 @@ final class RecipeRenderer {
                 .makeForbidden()
                 .getItemStack();
 
-        List<Integer> glassSlots = Arrays.asList(0,1,2,3,4,5,6,7,8,9,13,14,15,16,17,18,22,23,25,26,27,31,32,33,34,35,36,37,38,39,41,42,43,44);
+        List<Integer> glassSlots = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 22, 23, 25, 26,
+                27, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 43, 44);
         for (int slot : glassSlots) {
             inventory.setItem(slot, glass);
         }
@@ -161,14 +168,16 @@ final class RecipeRenderer {
         renderIngredient(inventory, 28, rowThree.get(0));
         renderIngredient(inventory, 29, rowThree.get(1));
         renderIngredient(inventory, 30, rowThree.get(2));
-        inventory.setItem(24,new CustomItem(CustomItemManager.createCustomItem(itemId)).makeForbidden().getItemStack());
+        inventory.setItem(24,
+                new CustomItem(CustomItemManager.createCustomItem(itemId)).makeForbidden().getItemStack());
 
         GuiManager.RECIPE_GUI_MAP.put(player.getUniqueId(), inventory);
         player.openInventory(inventory);
     }
 
     private void renderIngredient(Inventory inventory, int slot, String material) {
-        if (material == null || material.equalsIgnoreCase("AIR") || material.equalsIgnoreCase("empty")) return;
+        if (material == null || material.equalsIgnoreCase("AIR") || material.equalsIgnoreCase("empty"))
+            return;
 
         if (material.startsWith("#") && tagFromString(material.substring(1)) != null) {
             Tag<Material> tag = tagFromString(material.substring(1).toLowerCase());
@@ -178,12 +187,14 @@ final class RecipeRenderer {
         }
 
         if (getItemIds().contains(material.toLowerCase())) {
-            inventory.setItem(slot, new CustomItem(CustomItemManager.createCustomItem(material)).makeForbidden().getItemStack());
+            inventory.setItem(slot,
+                    new CustomItem(CustomItemManager.createCustomItem(material)).makeForbidden().getItemStack());
             return;
         }
 
         if (Material.getMaterial(material.toUpperCase()) != null) {
-            inventory.setItem(slot, new CustomItem(new ItemStack(Material.valueOf(material.toUpperCase()), 1)).makeForbidden().getItemStack());
+            inventory.setItem(slot, new CustomItem(new ItemStack(Material.valueOf(material.toUpperCase()), 1))
+                    .makeForbidden().getItemStack());
             return;
         }
 
@@ -192,15 +203,18 @@ final class RecipeRenderer {
 
     private Tag<Material> tagFromString(String tagName) {
         Tag<Material> blockTag = Bukkit.getTag("blocks", NamespacedKey.minecraft(tagName), Material.class);
-        if (blockTag != null) return blockTag;
-        else return Bukkit.getTag("items", NamespacedKey.minecraft(tagName), Material.class);
+        if (blockTag != null)
+            return blockTag;
+        else
+            return Bukkit.getTag("items", NamespacedKey.minecraft(tagName), Material.class);
     }
 
     private void startTagAnimation(Inventory inventory, int slot, Set<Material> materials) {
         List<Material> materialList = new ArrayList<>(materials);
         AtomicReference<Integer> index = new AtomicReference<>(0);
 
-        if (materialList.isEmpty()) return;
+        if (materialList.isEmpty())
+            return;
 
         Runnable runnable = () -> {
             int currentIndex = index.get();
@@ -210,17 +224,16 @@ final class RecipeRenderer {
             index.set((currentIndex + 1) % materialList.size());
         };
 
-        int taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, runnable, 0L, 20L);
+        WrappedTask task = plugin.getFoliaLib().getScheduler().runTimer(runnable, 0L, 20L);
 
-        if (taskId == -1) return;
-
-        addAnimation(inventory, taskId);
+        addAnimation(inventory, task);
 
         // Cancel the task after 30 seconds
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            Bukkit.getScheduler().cancelTask(taskId);
-            if (inventory != null) inventory.setItem(slot, new CustomItem(materialList.get(0)).makeForbidden().getItemStack());
-        }, 20 * 30);
+        plugin.getFoliaLib().getScheduler().runLater(() -> {
+            task.cancel();
+            if (inventory != null)
+                inventory.setItem(slot, new CustomItem(materialList.get(0)).makeForbidden().getItemStack());
+        }, 20 * 30L);
     }
 
     private Set<String> getItemIds() {

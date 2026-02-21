@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.zetaplugins.lifestealz.LifeStealZ;
 import com.zetaplugins.lifestealz.storage.PlayerData;
 
@@ -28,15 +27,18 @@ public final class GracePeriodManager {
 
     /**
      * Checks if the player is in the grace period.
+     * 
      * @param player The player to check.
      * @return True if the player is in the grace period, false otherwise.
      */
     public boolean isInGracePeriod(OfflinePlayer player) {
-        if (!isEnabled()) return false;
+        if (!isEnabled())
+            return false;
 
         PlayerData playerData = plugin.getStorage().load(player.getUniqueId());
 
-        if (playerData == null) return false;
+        if (playerData == null)
+            return false;
 
         long firstJoin = playerData.getFirstJoin();
         final long now = System.currentTimeMillis();
@@ -47,15 +49,18 @@ public final class GracePeriodManager {
 
     /**
      * Gets the remaining time of the grace period in seconds.
+     * 
      * @param player The player to get the grace period remaining time for.
      * @return The remaining time of the grace period in seconds.
      */
     public Optional<Integer> getGracePeriodRemaining(Player player) {
-        if (!isEnabled()) return Optional.empty();
+        if (!isEnabled())
+            return Optional.empty();
 
         PlayerData playerData = plugin.getStorage().load(player.getUniqueId());
 
-        if (playerData == null) return Optional.empty();
+        if (playerData == null)
+            return Optional.empty();
 
         long firstJoin = playerData.getFirstJoin();
         final long now = System.currentTimeMillis();
@@ -67,11 +72,14 @@ public final class GracePeriodManager {
     }
 
     /**
-     * Sends the player a message and executes commands when the grace period starts.
+     * Sends the player a message and executes commands when the grace period
+     * starts.
+     * 
      * @param player The player to start the grace period for.
      */
     public void startGracePeriod(Player player) {
-        if (!isEnabled()) return;
+        if (!isEnabled())
+            return;
 
         for (String command : getConfig().getStartCommands()) {
             plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
@@ -81,27 +89,27 @@ public final class GracePeriodManager {
         // Duration in ticks: 20 ticks = 1 second
         final long gracePeriodDuration = (long) getConfig().getDuration() * 20;
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        plugin.getFoliaLib().getScheduler().runAtEntityLater(player, () -> {
+            if (player.isOnline()) {
                 endGracePeriod(player);
             }
-        }.runTaskLater(plugin, gracePeriodDuration);
+        }, null, gracePeriodDuration);
     }
 
     /**
      * Sends the player a message and executes commands when the grace period ends.
+     * 
      * @param player The player to end the grace period for.
      */
     public void endGracePeriod(Player player) {
-        if (!isEnabled()) return;
+        if (!isEnabled())
+            return;
 
         if (getConfig().shouldAnnounce()) {
             Component endMessage = MessageUtils.getAndFormatMsg(
                     true,
                     "gracePeriodEnd",
-                    "&7The grace period has ended!"
-            );
+                    "&7The grace period has ended!");
             player.sendMessage(endMessage);
         }
 
@@ -117,17 +125,22 @@ public final class GracePeriodManager {
 
     /**
      * Skips the grace period for the player.
+     * 
      * @param player The player to skip the grace period for.
      * @return True if the grace period was skipped, false otherwise.
      */
     public boolean skipGracePeriod(OfflinePlayer player) {
-        if (!isEnabled()) return false;
-        if (!isInGracePeriod(player)) return false;
+        if (!isEnabled())
+            return false;
+        if (!isInGracePeriod(player))
+            return false;
 
         PlayerData playerData = plugin.getStorage().load(player.getUniqueId());
-        if (playerData == null) return false;
+        if (playerData == null)
+            return false;
 
-        playerData.setFirstJoin(System.currentTimeMillis() - getConfig().getDuration() * 1000L);// Subtract the duration of the grace period
+        playerData.setFirstJoin(System.currentTimeMillis() - getConfig().getDuration() * 1000L);// Subtract the duration
+                                                                                                // of the grace period
         plugin.getStorage().save(playerData);
 
         for (String command : getConfig().getEndCommands()) {
@@ -140,14 +153,17 @@ public final class GracePeriodManager {
 
     /**
      * Resets the grace period for the player.
+     * 
      * @param player The player to reset the grace period for.
      * @return True if the grace period was reset, false otherwise.
      */
     public boolean resetGracePeriod(OfflinePlayer player) {
-        if (!isEnabled()) return false;
+        if (!isEnabled())
+            return false;
 
         PlayerData playerData = plugin.getStorage().load(player.getUniqueId());
-        if (playerData == null) return false;
+        if (playerData == null)
+            return false;
 
         playerData.setFirstJoin(System.currentTimeMillis());
         plugin.getStorage().save(playerData);

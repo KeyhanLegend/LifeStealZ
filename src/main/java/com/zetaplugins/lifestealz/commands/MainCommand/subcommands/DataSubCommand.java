@@ -1,7 +1,7 @@
 package com.zetaplugins.lifestealz.commands.MainCommand.subcommands;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import com.zetaplugins.lifestealz.LifeStealZ;
 import com.zetaplugins.lifestealz.commands.SubCommand;
 import com.zetaplugins.lifestealz.util.MessageUtils;
@@ -48,25 +48,22 @@ public final class DataSubCommand implements SubCommand {
         sender.sendMessage(MessageUtils.getAndFormatMsg(
                 true,
                 "exportingData",
-                "&7Exporting player data..."
-        ));
-        BukkitTask task = plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                "&7Exporting player data..."));
+        WrappedTask task = plugin.getFoliaLib().getScheduler().runLaterAsync(() -> {
             String filePath = storage.export(fileName);
             if (filePath != null) {
                 sender.sendMessage(MessageUtils.getAndFormatMsg(
                         true,
                         "exportData",
                         "&7Successfully exported player data to &c%file%",
-                        new MessageUtils.Replaceable("%file%", filePath)
-                ));
+                        new MessageUtils.Replaceable("%file%", filePath)));
             } else {
                 sender.sendMessage(MessageUtils.getAndFormatMsg(
                         false,
                         "exportDataError",
-                        "&cFailed to export data! Check console for details."
-                ));
+                        "&cFailed to export data! Check console for details."));
             }
-        });
+        }, 1L);
         plugin.getAsyncTaskManager().addTask(task);
         return true;
     }
@@ -75,17 +72,15 @@ public final class DataSubCommand implements SubCommand {
         sender.sendMessage(MessageUtils.getAndFormatMsg(
                 true,
                 "importingData",
-                "&7Importing player data..."
-        ));
-        BukkitTask task = plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                "&7Importing player data..."));
+        WrappedTask task = plugin.getFoliaLib().getScheduler().runLaterAsync(() -> {
             storage.importData(fileName);
             sender.sendMessage(MessageUtils.getAndFormatMsg(
                     true,
                     "importData",
                     "&7Successfully imported &c%file%.csv&7!\n&cPlease restart the server, to ensure flawless migration!",
-                    new MessageUtils.Replaceable("%file%", fileName)
-            ));
-        });
+                    new MessageUtils.Replaceable("%file%", fileName)));
+        }, 1L);
         plugin.getAsyncTaskManager().addTask(task);
         return true;
     }

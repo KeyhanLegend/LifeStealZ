@@ -24,6 +24,7 @@ import com.zetaplugins.lifestealz.storage.MySQLStorage;
 import com.zetaplugins.lifestealz.storage.Storage;
 import com.zetaplugins.lifestealz.storage.SQLiteStorage;
 import com.zetaplugins.lifestealz.util.worldguard.WorldGuardManager;
+import com.tcoded.folialib.FoliaLib;
 
 import java.io.File;
 import java.util.List;
@@ -47,6 +48,7 @@ public final class LifeStealZ extends ZetaCorePlugin {
     private AsyncTaskManager asyncTaskManager;
     private ReviveBeaconEffectManager reviveBeaconEffectManager;
     private ReviveTaskManager reviveTaskManager;
+    private FoliaLib foliaLib;
     private final boolean hasWorldGuard = Bukkit.getPluginManager().getPlugin("WorldGuard") != null;
     private final boolean hasPlaceholderApi = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
     private final boolean hasGeyser = Bukkit.getPluginManager().getPlugin("floodgate") != null;
@@ -55,10 +57,12 @@ public final class LifeStealZ extends ZetaCorePlugin {
     public void onLoad() {
         getLogger().info("Loading LifeStealZ...");
 
-        if (Bukkit.getName().toLowerCase().contains("spigot") || Bukkit.getName().toLowerCase().contains("craftbukkit")) {
+        if (Bukkit.getName().toLowerCase().contains("spigot")
+                || Bukkit.getName().toLowerCase().contains("craftbukkit")) {
             getLogger().severe("---------------------------------------------------");
             getLogger().severe("LifeStealZ does not support Spigot or Bukkit!");
-            getLogger().severe("Please use Paper or any fork of Paper (like Purpur). If you need further assistance, please join our Discord server:");
+            getLogger().severe(
+                    "Please use Paper or any fork of Paper (like Purpur). If you need further assistance, please join our Discord server:");
             getLogger().severe("https://strassburger.org/discord");
             getLogger().severe("---------------------------------------------------");
         }
@@ -80,6 +84,8 @@ public final class LifeStealZ extends ZetaCorePlugin {
 
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
+
+        foliaLib = new FoliaLib(this);
 
         asyncTaskManager = new AsyncTaskManager();
         reviveBeaconEffectManager = new ReviveBeaconEffectManager(this);
@@ -124,8 +130,15 @@ public final class LifeStealZ extends ZetaCorePlugin {
     @Override
     public void onDisable() {
         getLogger().info("Canceling all running tasks...");
-        asyncTaskManager.cancelAllTasks();
-        reviveBeaconEffectManager.clearAllEffects();
+        if (foliaLib != null) {
+            foliaLib.getScheduler().cancelAllTasks();
+        }
+        if (asyncTaskManager != null) {
+            asyncTaskManager.cancelAllTasks();
+        }
+        if (reviveBeaconEffectManager != null) {
+            reviveBeaconEffectManager.clearAllEffects();
+        }
         getLogger().info("LifeStealZ disabled!");
     }
 
@@ -135,6 +148,10 @@ public final class LifeStealZ extends ZetaCorePlugin {
 
     public static LifeStealZAPI getAPI() {
         return new LifeStealZAPIImpl(getInstance());
+    }
+
+    public FoliaLib getFoliaLib() {
+        return foliaLib;
     }
 
     public AsyncTaskManager getAsyncTaskManager() {
@@ -238,10 +255,11 @@ public final class LifeStealZ extends ZetaCorePlugin {
     }
 
     private void initializeBStats() {
-        int pluginId = 18735;
+        int pluginId = 29674;
         Metrics metrics = createBStatsMetrics(pluginId);
 
-        metrics.addCustomChart(new Metrics.SimplePie("storage_type", () -> getConfigManager().getStorageConfig().getString("type")));
+        metrics.addCustomChart(
+                new Metrics.SimplePie("storage_type", () -> getConfigManager().getStorageConfig().getString("type")));
         metrics.addCustomChart(new Metrics.SimplePie("language", () -> getConfig().getString("lang")));
     }
 

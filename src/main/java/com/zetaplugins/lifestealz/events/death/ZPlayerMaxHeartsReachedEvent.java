@@ -2,23 +2,17 @@ package com.zetaplugins.lifestealz.events.death;
 
 import com.zetaplugins.lifestealz.events.ZPlayerDeathEventBase;
 import com.zetaplugins.lifestealz.util.MessageUtils;
-import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class ZPlayerMaxHeartsReachedEvent extends ZPlayerDeathEventBase {
-    @Getter
-    private final Player killer;
+        private final Player killer;
     
-    @Getter
-    private final double maxHeartsLimit;
+        private final double maxHeartsLimit;
     
-    @Getter @Setter
     private boolean shouldDropHeartsInstead;
     
-    @Getter @Setter
     private Component maxHeartsMessage;
 
     public ZPlayerMaxHeartsReachedEvent(PlayerDeathEvent originalEvent, Player killer, double maxHearts) {
@@ -33,4 +27,29 @@ public class ZPlayerMaxHeartsReachedEvent extends ZPlayerDeathEventBase {
                 new MessageUtils.Replaceable("%limit%", String.valueOf((int) (maxHearts / 2)))
         );
     }
+
+    public Player getKiller() {
+        return killer;
+    }
+
+    public double getMaxHeartsLimit() {
+        return maxHeartsLimit;
+    }
+
+    public boolean isShouldDropHeartsInstead() {
+        return shouldDropHeartsInstead;
+    }
+
+    public void setShouldDropHeartsInstead(boolean shouldDropHeartsInstead) {
+        this.shouldDropHeartsInstead = shouldDropHeartsInstead;
+    }
+
+    public Component getMaxHeartsMessage() {
+        return maxHeartsMessage;
+    }
+
+    public void setMaxHeartsMessage(Component maxHeartsMessage) {
+        this.maxHeartsMessage = maxHeartsMessage;
+    }
+
 }

@@ -8,8 +8,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -22,12 +21,12 @@ import java.util.Set;
 
 public final class ReviveBeaconEffectManager {
     private final LifeStealZ plugin;
-    private final Map<Location, BukkitTask> idleParticleBeacons;
-    private final Map<Location, BukkitTask> revivingParticleBeacons;
+    private final Map<Location, WrappedTask> idleParticleBeacons;
+    private final Map<Location, WrappedTask> revivingParticleBeacons;
     private final Map<Location, Set<BlockDisplay>> lasers;
-    private final Map<Location, BukkitTask> laserGrowTasks;
+    private final Map<Location, WrappedTask> laserGrowTasks;
     private final Map<Location, BlockDisplay> decoyDisplays;
-    private final Map<Location, BukkitTask> bossbarTasks;
+    private final Map<Location, WrappedTask> bossbarTasks;
     private final Map<Location, BossBar> bossBars;
 
     public ReviveBeaconEffectManager(LifeStealZ plugin) {
@@ -42,95 +41,112 @@ public final class ReviveBeaconEffectManager {
     }
 
     /**
-     * Starts the idle particle effects for a Revive Beacon at the specified location.
-     * @param location The location of the Revive Beacon where the particles will be spawned.
-     * @param showEnchantParticles Whether to show enchantment particles around the beacon.
-     * @param decoyMaterial The material to use for the decoy block display.
+     * Starts the idle particle effects for a Revive Beacon at the specified
+     * location.
+     * 
+     * @param location             The location of the Revive Beacon where the
+     *                             particles will be spawned.
+     * @param showEnchantParticles Whether to show enchantment particles around the
+     *                             beacon.
+     * @param decoyMaterial        The material to use for the decoy block display.
      */
     public void startIdleEffects(Location location, boolean showEnchantParticles, Material decoyMaterial) {
-        if (idleParticleBeacons.containsKey(getKey(location)) || decoyDisplays.containsKey(getKey(location))) return;
+        if (idleParticleBeacons.containsKey(getKey(location)) || decoyDisplays.containsKey(getKey(location)))
+            return;
 
         applyMaterialDecoy(location, decoyMaterial);
 
-        if (!showEnchantParticles) return;
+        if (!showEnchantParticles)
+            return;
 
-        var runnable = new BukkitRunnable() {
+        WrappedTask runnable = plugin.getFoliaLib().getScheduler().runAtLocationTimer(location, new Runnable() {
             final Location center = location.clone().add(0.5, 1.0, 0.5);
 
             public void run() {
                 center.getWorld().spawnParticle(Particle.ENCHANT, center, 25, 0.6, 0.5, 0.6, 0.0);
             }
-        }.runTaskTimer(plugin, 0L, 10L);
+        }, 0L, 10L);
 
         idleParticleBeacons.put(getKey(location), runnable);
     }
 
     /**
-     * Starts the reviving particle effects for a Revive Beacon at the specified location.
-     * @param location The location of the Revive Beacon where the particles will be spawned.
-     * @param target The name of the Player who is being revived.
-     * @param showLaser Whether to show the laser effect.
-     * @param showParticleRing Whether to show the particle ring effect.
-     * @param particleColor The color of the particles in the ring.
+     * Starts the reviving particle effects for a Revive Beacon at the specified
+     * location.
+     * 
+     * @param location           The location of the Revive Beacon where the
+     *                           particles will be spawned.
+     * @param target             The name of the Player who is being revived.
+     * @param showLaser          Whether to show the laser effect.
+     * @param showParticleRing   Whether to show the particle ring effect.
+     * @param particleColor      The color of the particles in the ring.
      * @param innerLaserMaterial The material for the inner laser beam.
      * @param outerLaserMaterial The material for the outer laser beam.
      */
-    public void startRevivingEffects(Location location, String target, boolean showLaser, boolean showParticleRing, ParticleColor particleColor, Material innerLaserMaterial, Material outerLaserMaterial, int reviveTime) {
-        if (revivingParticleBeacons.containsKey(location) || lasers.containsKey(location)) return;
+    public void startRevivingEffects(Location location, String target, boolean showLaser, boolean showParticleRing,
+            ParticleColor particleColor, Material innerLaserMaterial, Material outerLaserMaterial, int reviveTime) {
+        if (revivingParticleBeacons.containsKey(location) || lasers.containsKey(location))
+            return;
 
-        if (showLaser) spawnBeaconLaser(location, innerLaserMaterial, outerLaserMaterial);
+        if (showLaser)
+            spawnBeaconLaser(location, innerLaserMaterial, outerLaserMaterial);
 
         location.getWorld().playSound(location, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.0f);
 
         if (showParticleRing) {
-            var runnable = new BukkitRunnable() {
+            WrappedTask runnable = plugin.getFoliaLib().getScheduler().runAtLocationTimer(location, new Runnable() {
                 final Location center = location.clone().add(0.5, 1.0, 0.5);
 
                 public void run() {
                     spawnRing(center, particleColor);
                 }
-            }.runTaskTimer(plugin, 0L, 10L);
+            }, 0L, 10L);
 
             revivingParticleBeacons.put(getKey(location), runnable);
         }
 
-        if (plugin.getConfig().getBoolean("showBossbar")) startBossbarTask(location, target, reviveTime);
+        if (plugin.getConfig().getBoolean("showBossbar"))
+            startBossbarTask(location, target, reviveTime);
     }
 
     /**
      * Starts a bossbar task for a Revive Beacon at the specified location.
-     * @param location The location of the Revive Beacon where the bossbar will be shown.
-     * @param target The name of the Player who is being revived.
+     * 
+     * @param location   The location of the Revive Beacon where the bossbar will be
+     *                   shown.
+     * @param target     The name of the Player who is being revived.
      * @param reviveTime The total time in seconds for the revival process.
      */
     private void startBossbarTask(Location location, String target, int reviveTime) {
-        if (bossbarTasks.containsKey(getKey(location))) return;
+        if (bossbarTasks.containsKey(getKey(location)))
+            return;
 
         int countdown = reviveTime;
         BossBar bossBar = Bukkit.createBossBar(
                 "",
                 parseBossbarColor(plugin.getConfig().getString("bossbarColor"), BarColor.RED),
-                parseBossbarStyle(plugin.getConfig().getString("bossbarStyle"), BarStyle.SOLID)
-        );
+                parseBossbarStyle(plugin.getConfig().getString("bossbarStyle"), BarStyle.SOLID));
         bossBar.setVisible(true);
 
         bossBars.put(getKey(location), bossBar);
 
-        BukkitTask bossbarTask = new BukkitRunnable() {
+        WrappedTask[] taskRef = new WrappedTask[1];
+        WrappedTask bossbarTask = plugin.getFoliaLib().getScheduler().runAtLocationTimer(location, new Runnable() {
             int timeleft = countdown;
 
             public void run() {
-                if (timeleft <= 0){
+                if (timeleft <= 0) {
                     bossBar.setVisible(false);
                     bossBar.removeAll();
                     bossBars.remove(getKey(location));
-                    this.cancel();
+                    if (taskRef[0] != null)
+                        taskRef[0].cancel();
                     return;
                 }
 
                 int days = timeleft / 86400;
                 int hours = (timeleft % 86400) / 3600;
-                int minutes = (timeleft & 3600) / 60;
+                int minutes = (timeleft % 3600) / 60;
                 int seconds = timeleft % 60;
 
                 String hFormatted = String.format("%02d", hours);
@@ -154,27 +170,34 @@ public final class ReviveBeaconEffectManager {
                         .replace("&locationX&", String.valueOf(location.getBlockX()))
                         .replace("&locationY&", String.valueOf(location.getBlockY()))
                         .replace("&locationZ&", String.valueOf(location.getBlockZ()))
-                        .replace("&location&", location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ());
+                        .replace("&location&", location.getBlockX() + ", " + location.getBlockY() + ", "
+                                + location.getBlockZ());
                 bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', title));
                 timeleft--;
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }, 0L, 20L);
+        taskRef[0] = bossbarTask;
 
         bossbarTasks.put(getKey(location), bossbarTask);
     }
 
     /**
      * Stops the bossbar task for a Revive Beacon at the specified location.
-     * @param location The location of the Revive Beacon where the bossbar task will be stopped.
+     * 
+     * @param location The location of the Revive Beacon where the bossbar task will
+     *                 be stopped.
      */
     public void stopBossbarTask(Location location) {
-        BukkitTask task = bossbarTasks.remove(getKey(location));
-        if (task != null) task.cancel();
+        WrappedTask task = bossbarTasks.remove(getKey(location));
+        if (task != null)
+            task.cancel();
     }
 
     /**
      * Removes the bossbar at the specified location.
-     * @param location The location of the Revive Beacon where the bossbar will be removed.
+     * 
+     * @param location The location of the Revive Beacon where the bossbar will be
+     *                 removed.
      */
     public void removeBossbar(Location location) {
         BossBar bossBar = bossBars.remove(getKey(location));
@@ -185,12 +208,15 @@ public final class ReviveBeaconEffectManager {
     }
 
     /**
-     * Applies a decoy material at the specified location using block displays. This fakes the appearance of a block
-     * @param location The location where the decoy material will be applied.
+     * Applies a decoy material at the specified location using block displays. This
+     * fakes the appearance of a block
+     * 
+     * @param location      The location where the decoy material will be applied.
      * @param decoyMaterial The material to use for the decoy block display.
      */
     private void applyMaterialDecoy(Location location, Material decoyMaterial) {
-        if (decoyDisplays.containsKey(getKey(location))) return;
+        if (decoyDisplays.containsKey(getKey(location)))
+            return;
 
         BlockDisplay display = location.getWorld().spawn(location, BlockDisplay.class);
         display.setBlock(decoyMaterial.createBlockData());
@@ -204,6 +230,7 @@ public final class ReviveBeaconEffectManager {
 
     /**
      * Animates the growth of a decoy block display at the specified location.
+     * 
      * @param display The BlockDisplay instance representing the decoy.
      */
     private void animateDecoyGrowth(BlockDisplay display) {
@@ -217,38 +244,43 @@ public final class ReviveBeaconEffectManager {
                 new Vector3f((1 - width) / 2, 0.5f - (initialHeight / 2f), (1 - width) / 2),
                 new Quaternionf(),
                 new Vector3f(width, initialHeight, width),
-                new Quaternionf()
-        ));
+                new Quaternionf()));
 
-        new BukkitRunnable() {
-            float currentHeight = initialHeight;
+        WrappedTask[] taskRef = new WrappedTask[1];
+        WrappedTask growthTask = plugin.getFoliaLib().getScheduler().runAtLocationTimer(display.getLocation(),
+                new Runnable() {
+                    float currentHeight = initialHeight;
 
-            @Override
-            public void run() {
-                currentHeight += growSpeed;
+                    @Override
+                    public void run() {
+                        currentHeight += growSpeed;
 
-                if (currentHeight >= targetSize) {
-                    currentHeight = targetSize;
-                    this.cancel();
-                }
+                        if (currentHeight >= targetSize) {
+                            currentHeight = targetSize;
+                            if (taskRef[0] != null)
+                                taskRef[0].cancel();
+                        }
 
-                // Adjust Y so it's always centered
-                float translationY = 0.5f - (currentHeight / 2f);
+                        // Adjust Y so it's always centered
+                        float translationY = 0.5f - (currentHeight / 2f);
 
-                display.setTransformation(new Transformation(
-                        new Vector3f((1 - width) / 2, translationY, (1 - width) / 2),
-                        new Quaternionf(),
-                        new Vector3f(width, currentHeight, width),
-                        new Quaternionf()
-                ));
-            }
-        }.runTaskTimer(plugin, 0L, tickInterval);
+                        display.setTransformation(new Transformation(
+                                new Vector3f((1 - width) / 2, translationY, (1 - width) / 2),
+                                new Quaternionf(),
+                                new Vector3f(width, currentHeight, width),
+                                new Quaternionf()));
+                    }
+                }, 0L, tickInterval);
+        taskRef[0] = growthTask;
     }
 
     /**
      * Spawns a ring of particles around the specified center location.
-     * This method is typically called when the Revive Beacon is activated or during the reviving process.
-     * @param center The center location around which the ring of particles will be spawned.
+     * This method is typically called when the Revive Beacon is activated or during
+     * the reviving process.
+     * 
+     * @param center        The center location around which the ring of particles
+     *                      will be spawned.
      * @param particleColor The color of the particles to be spawned in the ring.
      */
     private void spawnRing(Location center, ParticleColor particleColor) {
@@ -266,15 +298,15 @@ public final class ReviveBeaconEffectManager {
                     ringCenter.clone().add(xOffset, 0.25, zOffset),
                     1,
                     0.0, 0.0, 0.0,
-                    new Particle.DustOptions(particleColor.getColor(), 1.2f)
-            );
+                    new Particle.DustOptions(particleColor.getColor(), 1.2f));
         }
     }
 
     /**
      * Spawns the laser effect for a Revive Beacon at the specified location.
      *
-     * @param location The location of the Revive Beacon where the laser will be spawned.
+     * @param location      The location of the Revive Beacon where the laser will
+     *                      be spawned.
      * @param innerMaterial The material for the inner laser beam.
      * @param outerMaterial The material for the outer laser beam.
      */
@@ -305,7 +337,8 @@ public final class ReviveBeaconEffectManager {
         quartz.setTransformation(new Transformation(translation, noRotation, initialQuartzScale, noRotation));
         glass.setTransformation(new Transformation(translation, noRotation, initialGlassScale, noRotation));
 
-        BukkitTask lasergrowTask = new BukkitRunnable() {
+        WrappedTask[] taskRef = new WrappedTask[1];
+        WrappedTask lasergrowTask = plugin.getFoliaLib().getScheduler().runAtLocationTimer(location, new Runnable() {
             float currentHeight = 0.1f;
 
             @Override
@@ -313,56 +346,69 @@ public final class ReviveBeaconEffectManager {
                 currentHeight += growSpeed;
                 if (currentHeight >= finalHeight) {
                     currentHeight = finalHeight;
-                    this.cancel();
+                    if (taskRef[0] != null)
+                        taskRef[0].cancel();
                 }
 
                 quartz.setTransformation(new Transformation(
-                        translation, noRotation, new Vector3f(width1, currentHeight, width1), noRotation
-                ));
+                        translation, noRotation, new Vector3f(width1, currentHeight, width1), noRotation));
                 glass.setTransformation(new Transformation(
-                        translation, noRotation, new Vector3f(width2, currentHeight, width2), noRotation
-                ));
+                        translation, noRotation, new Vector3f(width2, currentHeight, width2), noRotation));
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }, 0L, 1L);
+        taskRef[0] = lasergrowTask;
 
         laserGrowTasks.put(getKey(location), lasergrowTask);
     }
 
     /**
-     * Stops the idle particle effects for a Revive Beacon at the specified location.
-     * @param location The location of the Revive Beacon where the particles will be stopped.
+     * Stops the idle particle effects for a Revive Beacon at the specified
+     * location.
+     * 
+     * @param location The location of the Revive Beacon where the particles will be
+     *                 stopped.
      */
     public void stopIdlePArticles(Location location) {
-        BukkitTask task = idleParticleBeacons.remove(getKey(location));
-        if (task != null) task.cancel();
+        WrappedTask task = idleParticleBeacons.remove(getKey(location));
+        if (task != null)
+            task.cancel();
     }
 
     /**
-     * Stops the reviving particle effects for a Revive Beacon at the specified location.
-     * @param location The location of the Revive Beacon where the particles will be stopped.
+     * Stops the reviving particle effects for a Revive Beacon at the specified
+     * location.
+     * 
+     * @param location The location of the Revive Beacon where the particles will be
+     *                 stopped.
      */
     public void stopRevivingParticles(Location location) {
-        BukkitTask task = revivingParticleBeacons.remove(getKey(location));
-        if (task != null) task.cancel();
+        WrappedTask task = revivingParticleBeacons.remove(getKey(location));
+        if (task != null)
+            task.cancel();
     }
 
     /**
      * Removes the laser at the specified location
      * This method is typically called when a Revive Beacon is broken or removed.
-     * @param location The location of the Revive Beacon where the laser will be removed.
+     * 
+     * @param location The location of the Revive Beacon where the laser will be
+     *                 removed.
      */
     public void removeLaser(Location location) {
         Location key = getKey(location);
 
-        BukkitTask growTask = laserGrowTasks.remove(key);
-        if (growTask != null) growTask.cancel();
+        WrappedTask growTask = laserGrowTasks.remove(key);
+        if (growTask != null)
+            growTask.cancel();
 
         Set<BlockDisplay> displays = lasers.remove(key);
-        if (displays == null || displays.isEmpty()) return;
+        if (displays == null || displays.isEmpty())
+            return;
 
         final float collapseSpeed = 1f;
 
-        new BukkitRunnable() {
+        WrappedTask[] taskRef = new WrappedTask[1];
+        WrappedTask collapseTask = plugin.getFoliaLib().getScheduler().runAtLocationTimer(location, new Runnable() {
             float currentHeight = displays.stream()
                     .findFirst()
                     .map(d -> d.getTransformation().getScale().y)
@@ -375,14 +421,17 @@ public final class ReviveBeaconEffectManager {
 
                 if (currentHeight <= 0f) {
                     for (BlockDisplay display : displays) {
-                        if (display != null) display.remove();
+                        if (display != null)
+                            display.remove();
                     }
-                    this.cancel();
+                    if (taskRef[0] != null)
+                        taskRef[0].cancel();
                     return;
                 }
 
                 for (BlockDisplay display : displays) {
-                    if (display == null) continue;
+                    if (display == null)
+                        continue;
 
                     Vector3f originalScale = display.getTransformation().getScale();
                     float width = originalScale.x;
@@ -392,26 +441,30 @@ public final class ReviveBeaconEffectManager {
                             new Vector3f(0f, yTranslation, 0f),
                             new Quaternionf(),
                             new Vector3f(width, currentHeight, width),
-                            new Quaternionf()
-                    ));
+                            new Quaternionf()));
                 }
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }, 0L, 1L);
+        taskRef[0] = collapseTask;
     }
 
     /**
      * Removes the decoy at the specified location.
+     * 
      * @param location The location of the decoy to be removed.
      */
     public void removeDecoy(Location location) {
         BlockDisplay display = decoyDisplays.remove(getKey(location));
-        if (display != null) display.remove();
+        if (display != null)
+            display.remove();
     }
 
     /**
      * Clears all particle effects and removes the pillar at the specified location.
      * This method is typically called when a Revive Beacon is broken or removed.
-     * @param location The location of the Revive Beacon where all effects will be cleared.
+     * 
+     * @param location The location of the Revive Beacon where all effects will be
+     *                 cleared.
      */
     public void clearAllEffects(Location location) {
         stopIdlePArticles(location);
@@ -424,23 +477,33 @@ public final class ReviveBeaconEffectManager {
 
     /**
      * Clears all particle effects and removes all pillars.
-     * This method is typically called when the plugin is disabled or when all Revive Beacons are removed.
+     * This method is typically called when the plugin is disabled or when all
+     * Revive Beacons are removed.
      */
     public void clearAllEffects() {
-        for (BukkitTask task : idleParticleBeacons.values()) task.cancel();
+        for (WrappedTask task : idleParticleBeacons.values())
+            task.cancel();
         idleParticleBeacons.clear();
-        for (BukkitTask task : revivingParticleBeacons.values()) task.cancel();
+        for (WrappedTask task : revivingParticleBeacons.values())
+            task.cancel();
         revivingParticleBeacons.clear();
         for (Set<BlockDisplay> displays : lasers.values()) {
-            if (displays == null) continue;
-            for (var display : displays) if (display != null) display.remove();
+            if (displays == null)
+                continue;
+            for (var display : displays)
+                if (display != null)
+                    display.remove();
         }
         lasers.clear();
-        for (BukkitTask task : laserGrowTasks.values()) task.cancel();
+        for (WrappedTask task : laserGrowTasks.values())
+            task.cancel();
         laserGrowTasks.clear();
-        for (BlockDisplay display : decoyDisplays.values()) if (display != null) display.remove();
+        for (BlockDisplay display : decoyDisplays.values())
+            if (display != null)
+                display.remove();
         decoyDisplays.clear();
-        for (BukkitTask task : bossbarTasks.values()) task.cancel();
+        for (WrappedTask task : bossbarTasks.values())
+            task.cancel();
         bossbarTasks.clear();
         for (BossBar bossBar : bossBars.values()) {
             if (bossBar != null) {
@@ -453,22 +516,27 @@ public final class ReviveBeaconEffectManager {
 
     /**
      * Generates a key for the given location, ignoring the pitch and yaw.
+     * 
      * @param location The location to generate a key for.
-     * @return A new Location object with the same world and block coordinates, but with pitch and yaw set to 0.
+     * @return A new Location object with the same world and block coordinates, but
+     *         with pitch and yaw set to 0.
      */
     private Location getKey(Location location) {
         return new Location(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     /**
-     * Parses a BarColor from a string, returning a fallback color if the string is invalid.
-     * @param color the name of the color to parse
+     * Parses a BarColor from a string, returning a fallback color if the string is
+     * invalid.
+     * 
+     * @param color         the name of the color to parse
      * @param fallbackColor the color to return if the string is invalid
      * @return the parsed color, or the fallback color if the string is invalid
      */
     private BarColor parseBossbarColor(@Nullable String color, BarColor fallbackColor) {
         try {
-            if (color == null) return fallbackColor;
+            if (color == null)
+                return fallbackColor;
             return BarColor.valueOf(color.toUpperCase());
         } catch (IllegalArgumentException e) {
             return fallbackColor;
@@ -476,14 +544,17 @@ public final class ReviveBeaconEffectManager {
     }
 
     /**
-     * Parses a BarStyle from a string, returning a fallback style if the string is invalid.
-     * @param style the style to parse
+     * Parses a BarStyle from a string, returning a fallback style if the string is
+     * invalid.
+     * 
+     * @param style         the style to parse
      * @param fallbackStyle the style to return if the string is invalid
      * @return the parsed style, or the fallback style if the string is invalid
      */
     private BarStyle parseBossbarStyle(@Nullable String style, BarStyle fallbackStyle) {
         try {
-            if (style == null) return fallbackStyle;
+            if (style == null)
+                return fallbackStyle;
             return BarStyle.valueOf(style.toUpperCase());
         } catch (IllegalArgumentException e) {
             return fallbackStyle;

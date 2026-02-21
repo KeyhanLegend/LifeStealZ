@@ -1,28 +1,20 @@
 package com.zetaplugins.lifestealz.events.death;
 
 import com.zetaplugins.lifestealz.events.ZPlayerDeathEventBase;
-import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class ZPlayerPvPDeathEvent extends ZPlayerDeathEventBase {
-    @Getter
-    private final Player killer;
+        private final Player killer;
     
-    @Getter @Setter
     private double heartsToLose;
     
-    @Getter @Setter
     private double heartsKillerGains;
     
-    @Getter @Setter
     private boolean shouldDropHearts;
     
-    @Getter @Setter
     private boolean killerShouldGainHearts;
     
-    @Getter @Setter
     private String deathMessage;
 
     public ZPlayerPvPDeathEvent(PlayerDeathEvent originalEvent, Player killer, double heartsToLose, double heartsKillerGains) {
@@ -34,4 +26,49 @@ public class ZPlayerPvPDeathEvent extends ZPlayerDeathEventBase {
         this.killerShouldGainHearts = true;
         this.deathMessage = originalEvent.getDeathMessage();
     }
+
+    public Player getKiller() {
+        return killer;
+    }
+
+    public double getHeartsToLose() {
+        return heartsToLose;
+    }
+
+    public void setHeartsToLose(double heartsToLose) {
+        this.heartsToLose = heartsToLose;
+    }
+
+    public double getHeartsKillerGains() {
+        return heartsKillerGains;
+    }
+
+    public void setHeartsKillerGains(double heartsKillerGains) {
+        this.heartsKillerGains = heartsKillerGains;
+    }
+
+    public boolean isShouldDropHearts() {
+        return shouldDropHearts;
+    }
+
+    public void setShouldDropHearts(boolean shouldDropHearts) {
+        this.shouldDropHearts = shouldDropHearts;
+    }
+
+    public boolean isKillerShouldGainHearts() {
+        return killerShouldGainHearts;
+    }
+
+    public void setKillerShouldGainHearts(boolean killerShouldGainHearts) {
+        this.killerShouldGainHearts = killerShouldGainHearts;
+    }
+
+    public String getDeathMessage() {
+        return deathMessage;
+    }
+
+    public void setDeathMessage(String deathMessage) {
+        this.deathMessage = deathMessage;
+    }
+
 }

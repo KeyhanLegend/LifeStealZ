@@ -2,29 +2,21 @@ package com.zetaplugins.lifestealz.events.death;
 
 import com.zetaplugins.lifestealz.events.ZPlayerDeathEventBase;
 import com.zetaplugins.lifestealz.util.MessageUtils;
-import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class ZPlayerAltKillEvent extends ZPlayerDeathEventBase {
-    @Getter
-    private final Player suspectedAlt;
+        private final Player suspectedAlt;
     
-    @Getter
-    private final String sharedIP;
+        private final String sharedIP;
     
-    @Getter @Setter
     private boolean shouldPreventKill;
     
-    @Getter @Setter
     private boolean shouldLogAttempt;
     
-    @Getter @Setter
     private boolean shouldSendMessage;
     
-    @Getter @Setter
     private Component warningMessage;
 
     public ZPlayerAltKillEvent(PlayerDeathEvent originalEvent, Player suspectedAlt, String sharedIP) {
@@ -40,4 +32,45 @@ public class ZPlayerAltKillEvent extends ZPlayerDeathEventBase {
                 "&cPlease don't kill alts! This attempt has been logged!"
         );
     }
+
+    public Player getSuspectedAlt() {
+        return suspectedAlt;
+    }
+
+    public String getSharedIP() {
+        return sharedIP;
+    }
+
+    public boolean isShouldPreventKill() {
+        return shouldPreventKill;
+    }
+
+    public void setShouldPreventKill(boolean shouldPreventKill) {
+        this.shouldPreventKill = shouldPreventKill;
+    }
+
+    public boolean isShouldLogAttempt() {
+        return shouldLogAttempt;
+    }
+
+    public void setShouldLogAttempt(boolean shouldLogAttempt) {
+        this.shouldLogAttempt = shouldLogAttempt;
+    }
+
+    public boolean isShouldSendMessage() {
+        return shouldSendMessage;
+    }
+
+    public void setShouldSendMessage(boolean shouldSendMessage) {
+        this.shouldSendMessage = shouldSendMessage;
+    }
+
+    public Component getWarningMessage() {
+        return warningMessage;
+    }
+
+    public void setWarningMessage(Component warningMessage) {
+        this.warningMessage = warningMessage;
+    }
+
 }

@@ -2,29 +2,21 @@ package com.zetaplugins.lifestealz.events.death;
 
 import com.zetaplugins.lifestealz.events.ZPlayerDeathEventBase;
 import com.zetaplugins.lifestealz.util.MessageUtils;
-import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class ZPlayerEliminationEvent extends ZPlayerDeathEventBase {
-    @Getter
-    private final Player killer; // Can be null for natural elimination
+        private final Player killer; // Can be null for natural elimination
     
-    @Getter
-    private final boolean isNaturalElimination;
+        private final boolean isNaturalElimination;
     
-    @Getter @Setter
     private boolean shouldBanPlayer;
     
-    @Getter @Setter
     private boolean shouldAnnounceElimination;
     
-    @Getter @Setter
     private Component eliminationMessage;
 
-    @Getter @Setter
     private Component kickMessage;
 
     public ZPlayerEliminationEvent(PlayerDeathEvent originalEvent, Player killer) {
@@ -39,4 +31,45 @@ public class ZPlayerEliminationEvent extends ZPlayerDeathEventBase {
                 "&cYou don't have any hearts left!"
         );
     }
+
+    public Player getKiller() {
+        return killer;
+    }
+
+    public boolean isNaturalElimination() {
+        return isNaturalElimination;
+    }
+
+    public boolean isShouldBanPlayer() {
+        return shouldBanPlayer;
+    }
+
+    public void setShouldBanPlayer(boolean shouldBanPlayer) {
+        this.shouldBanPlayer = shouldBanPlayer;
+    }
+
+    public boolean isShouldAnnounceElimination() {
+        return shouldAnnounceElimination;
+    }
+
+    public void setShouldAnnounceElimination(boolean shouldAnnounceElimination) {
+        this.shouldAnnounceElimination = shouldAnnounceElimination;
+    }
+
+    public Component getEliminationMessage() {
+        return eliminationMessage;
+    }
+
+    public void setEliminationMessage(Component eliminationMessage) {
+        this.eliminationMessage = eliminationMessage;
+    }
+
+    public Component getKickMessage() {
+        return kickMessage;
+    }
+
+    public void setKickMessage(Component kickMessage) {
+        this.kickMessage = kickMessage;
+    }
+
 }

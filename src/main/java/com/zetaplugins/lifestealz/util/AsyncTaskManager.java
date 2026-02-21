@@ -1,6 +1,6 @@
 package com.zetaplugins.lifestealz.util;
 
-import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +9,14 @@ import java.util.List;
  * Manages all running async tasks
  */
 public final class AsyncTaskManager {
-    private final List<BukkitTask> runningTasks = new ArrayList<>();
+    private final List<WrappedTask> runningTasks = new ArrayList<>();
 
     /**
      * Add a task to the list of running tasks
+     * 
      * @param task The task to add
      */
-    public void addTask(BukkitTask task) {
+    public void addTask(WrappedTask task) {
         runningTasks.add(task);
     }
 
@@ -23,8 +24,9 @@ public final class AsyncTaskManager {
      * Cancel all running tasks
      */
     public void cancelAllTasks() {
-        for (BukkitTask task : runningTasks) {
-            if (task.isCancelled()) continue;
+        for (WrappedTask task : runningTasks) {
+            if (task.isCancelled())
+                continue;
             task.cancel();
         }
         runningTasks.clear();

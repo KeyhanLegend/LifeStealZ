@@ -12,7 +12,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.zetaplugins.lifestealz.LifeStealZ;
 import com.zetaplugins.lifestealz.util.customitems.CustomItemType;
 import com.zetaplugins.lifestealz.util.customitems.customitemdata.CustomHeartItemData;
@@ -40,8 +39,7 @@ public final class InteractionListener implements Listener {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "interactionNotAllowed",
-                    "&cYou are not allowed to interact with this!"
-            ));
+                    "&cYou are not allowed to interact with this!"));
             event.setCancelled(true);
             return;
         }
@@ -50,14 +48,18 @@ public final class InteractionListener implements Listener {
             if (CustomItemManager.isForbiddenItem(item)) {
                 event.setCancelled(true);
 
-                if (hand == null) return;
+                if (hand == null)
+                    return;
 
                 switch (hand) {
                     case HAND:
-                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
+                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(),
+                                new ItemStack(Material.AIR));
                         break;
                     case OFF_HAND:
                         player.getInventory().setItem(40, new ItemStack(Material.AIR));
+                        break;
+                    default:
                         break;
                 }
             }
@@ -78,7 +80,9 @@ public final class InteractionListener implements Listener {
     }
 
     /**
-     * Checks if the event should be cancelled when a player interacts with a respawn anchor
+     * Checks if the event should be cancelled when a player interacts with a
+     * respawn anchor
+     * 
      * @param event PlayerInteractEvent
      * @return wether the event needs to be cancelled
      */
@@ -96,9 +100,13 @@ public final class InteractionListener implements Listener {
 
     private boolean shouldCancelBedInteraction(PlayerInteractEvent event) {
         List<World.Environment> disabledEnvironments = List.of(World.Environment.NETHER, World.Environment.THE_END);
-        List<Material> disabledMaterials = List.of(Material.BLACK_BED, Material.BLUE_BED, Material.BROWN_BED, Material.CYAN_BED, Material.GRAY_BED, Material.GREEN_BED, Material.LIGHT_BLUE_BED, Material.LIGHT_GRAY_BED, Material.LIME_BED, Material.MAGENTA_BED, Material.ORANGE_BED, Material.PINK_BED, Material.PURPLE_BED, Material.RED_BED, Material.WHITE_BED, Material.YELLOW_BED);
+        List<Material> disabledMaterials = List.of(Material.BLACK_BED, Material.BLUE_BED, Material.BROWN_BED,
+                Material.CYAN_BED, Material.GRAY_BED, Material.GREEN_BED, Material.LIGHT_BLUE_BED,
+                Material.LIGHT_GRAY_BED, Material.LIME_BED, Material.MAGENTA_BED, Material.ORANGE_BED,
+                Material.PINK_BED, Material.PURPLE_BED, Material.RED_BED, Material.WHITE_BED, Material.YELLOW_BED);
         Block block = event.getClickedBlock();
-        if (block == null || !plugin.getConfig().getBoolean("preventBeds")) return false;
+        if (block == null || !plugin.getConfig().getBoolean("preventBeds"))
+            return false;
         return event.getAction() == Action.RIGHT_CLICK_BLOCK
                 && disabledEnvironments.contains(event.getPlayer().getWorld().getEnvironment())
                 && disabledMaterials.contains(block.getType());
@@ -121,13 +129,14 @@ public final class InteractionListener implements Listener {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "noItemUseInWorld",
-                    "&cYou cannot use this item in this world!"
-            ));
+                    "&cYou cannot use this item in this world!"));
             return;
         }
 
-        if (customItemData.requiresPermission() && !player.hasPermission(customItemData.getPermission()) && !player.isOp() && !player.hasPermission("lifestealz.item.*")) {
-            player.sendMessage(MessageUtils.getAndFormatMsg(false, "noPermissionError", "&cYou don't have permission to use this!"));
+        if (customItemData.requiresPermission() && !player.hasPermission(customItemData.getPermission())
+                && !player.isOp() && !player.hasPermission("lifestealz.item.*")) {
+            player.sendMessage(MessageUtils.getAndFormatMsg(false, "noPermissionError",
+                    "&cYou don't have permission to use this!"));
             return;
         }
 
@@ -135,8 +144,7 @@ public final class InteractionListener implements Listener {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "noHeartUseWithBypass",
-                    "&cYou can't use hearts with bypass permission!"
-            ));
+                    "&cYou can't use hearts with bypass permission!"));
             return;
         }
 
@@ -144,20 +152,26 @@ public final class InteractionListener implements Listener {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "noHeartUseInGracePeriod",
-                    "&cYou can't use hearts during the grace period!"
-            ));
+                    "&cYou can't use hearts during the grace period!"));
             return;
         }
 
         long heartCooldown = plugin.getConfig().getLong("heartCooldown");
-        if (CooldownManager.lastHeartUse.get(player.getUniqueId()) != null && CooldownManager.lastHeartUse.get(player.getUniqueId()) + heartCooldown > System.currentTimeMillis()) {
-            player.sendMessage(MessageUtils.getAndFormatMsg(false, "heartconsumeCooldown", "&cYou have to wait before using another heart!"));
+        if (CooldownManager.lastHeartUse.get(player.getUniqueId()) != null
+                && CooldownManager.lastHeartUse.get(player.getUniqueId()) + heartCooldown > System
+                        .currentTimeMillis()) {
+            player.sendMessage(MessageUtils.getAndFormatMsg(false, "heartconsumeCooldown",
+                    "&cYou have to wait before using another heart!"));
             return;
         }
 
         PlayerData playerData = plugin.getStorage().load(player.getUniqueId());
 
-        Integer savedHeartAmountInteger = item.getItemMeta().getPersistentDataContainer().has(CustomItemManager.CUSTOM_HEART_VALUE_KEY, PersistentDataType.INTEGER) ? item.getItemMeta().getPersistentDataContainer().get(CustomItemManager.CUSTOM_HEART_VALUE_KEY, PersistentDataType.INTEGER) : 1;
+        Integer savedHeartAmountInteger = item.getItemMeta().getPersistentDataContainer()
+                .has(CustomItemManager.CUSTOM_HEART_VALUE_KEY, PersistentDataType.INTEGER)
+                        ? item.getItemMeta().getPersistentDataContainer().get(CustomItemManager.CUSTOM_HEART_VALUE_KEY,
+                                PersistentDataType.INTEGER)
+                        : 1;
         int savedHeartAmount = savedHeartAmountInteger != null ? savedHeartAmountInteger : 1;
         double heartsToAdd = savedHeartAmount * 2;
         double newHearts = playerData.getMaxHealth() + heartsToAdd;
@@ -165,17 +179,23 @@ public final class InteractionListener implements Listener {
         final double maxHearts = MaxHeartsManager.getMaxHearts(player, plugin.getConfig());
 
         if (newHearts > maxHearts) {
-            player.sendMessage(MessageUtils.getAndFormatMsg(false, "maxHeartLimitReached", "&cYou already reached the limit of %limit% hearts!", new MessageUtils.Replaceable("%limit%", Integer.toString((int) maxHearts / 2))));
+            player.sendMessage(MessageUtils.getAndFormatMsg(false, "maxHeartLimitReached",
+                    "&cYou already reached the limit of %limit% hearts!",
+                    new MessageUtils.Replaceable("%limit%", Integer.toString((int) maxHearts / 2))));
             return;
         }
 
         if (playerData.getMaxHealth() < customItemData.getMinHearts() * 2 && customItemData.getMinHearts() != -1) {
-            player.sendMessage(MessageUtils.getAndFormatMsg(false, "itemMinHearts", "&cYou need at least %amount% hearts to use this item!", new MessageUtils.Replaceable("%amount%", Integer.toString(customItemData.getMinHearts()))));
+            player.sendMessage(MessageUtils.getAndFormatMsg(false, "itemMinHearts",
+                    "&cYou need at least %amount% hearts to use this item!",
+                    new MessageUtils.Replaceable("%amount%", Integer.toString(customItemData.getMinHearts()))));
             return;
         }
 
         if (playerData.getMaxHealth() >= customItemData.getMaxHearts() * 2 && customItemData.getMaxHearts() != -1) {
-            player.sendMessage(MessageUtils.getAndFormatMsg(false, "itemMaxHearts", "&cYou can't use this item with more than %amount% hearts!", new MessageUtils.Replaceable("%amount%", Integer.toString(customItemData.getMaxHearts()))));
+            player.sendMessage(MessageUtils.getAndFormatMsg(false, "itemMaxHearts",
+                    "&cYou can't use this item with more than %amount% hearts!",
+                    new MessageUtils.Replaceable("%amount%", Integer.toString(customItemData.getMaxHearts()))));
             return;
         }
 
@@ -188,12 +208,15 @@ public final class InteractionListener implements Listener {
         playerData.setMaxHealth(newHearts);
         plugin.getStorage().save(playerData);
         LifeStealZ.setMaxHealth(player, newHearts);
-        if (plugin.getConfig().getBoolean("healOnHeartUse")) player.setHealth(Math.min(player.getHealth() + heartsToAdd, newHearts));
+        if (plugin.getConfig().getBoolean("healOnHeartUse"))
+            player.setHealth(Math.min(player.getHealth() + heartsToAdd, newHearts));
 
         String customItemID = CustomItemManager.getCustomItemId(item);
         if (customItemID != null) {
             CustomItemData.CustomItemSoundData sound = CustomItemManager.getCustomItemData(customItemID).getSound();
-            if (sound.isEnabled()) player.playSound(player.getLocation(), sound.getSound(), (float) sound.getVolume(), (float) sound.getPitch());
+            if (sound.isEnabled())
+                player.playSound(player.getLocation(), sound.getSound(), (float) sound.getVolume(),
+                        (float) sound.getPitch());
         }
 
         List<String> heartuseCommands = plugin.getConfig().getStringList("heartuseCommands");
@@ -202,9 +225,12 @@ public final class InteractionListener implements Listener {
         }
 
         // NOW USES CUSTOM MODEL
-        if (plugin.getConfig().getBoolean("playTotemEffect")) playHeartAnimation(player);
+        if (plugin.getConfig().getBoolean("playTotemEffect"))
+            playHeartAnimation(player);
 
-        player.sendMessage(MessageUtils.getAndFormatMsg(true, "heartconsume", "&7Consumed a heart and got &c%amount% &7hearts!", new MessageUtils.Replaceable("%amount%", savedHeartAmount + "")));
+        player.sendMessage(
+                MessageUtils.getAndFormatMsg(true, "heartconsume", "&7Consumed a heart and got &c%amount% &7hearts!",
+                        new MessageUtils.Replaceable("%amount%", savedHeartAmount + "")));
         CooldownManager.lastHeartUse.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
@@ -225,8 +251,7 @@ public final class InteractionListener implements Listener {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "noItemUseInWorld",
-                    "&cYou cannot use this item in this world!"
-            ));
+                    "&cYou cannot use this item in this world!"));
             return;
         }
 
@@ -237,19 +262,19 @@ public final class InteractionListener implements Listener {
         // Store the original off-hand item
         ItemStack originalOffHandItem = player.getInventory().getItemInOffHand();
 
-        // Create a fake totem item (will be shown for a very brief moment before the animation)
+        // Create a fake totem item (will be shown for a very brief moment before the
+        // animation)
         ItemStack fakeTotem = CustomItemManager.createHeartAnimationTotem();
 
         player.getInventory().setItemInOffHand(fakeTotem);
         // if you dont do a delay, it appears to use default texture
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        plugin.getFoliaLib().getScheduler().runAtEntityLater(player, () -> {
+            if (player.isOnline()) {
                 // Play the totem animation
                 player.playEffect(EntityEffect.PROTECTED_FROM_DEATH);
                 player.getInventory().setItemInOffHand(originalOffHandItem);
             }
-        }.runTaskLater(plugin, 3L);
+        }, null, 3L);
 
     }
 
@@ -257,7 +282,8 @@ public final class InteractionListener implements Listener {
         ItemStack updatedItem = item.clone();
         updatedItem.setAmount(item.getAmount() - 1);
 
-        if (updatedItem.getAmount() > 0) updatedItem.setItemMeta(item.getItemMeta());
+        if (updatedItem.getAmount() > 0)
+            updatedItem.setItemMeta(item.getItemMeta());
 
         player.getInventory().setItem(slot, updatedItem);
     }

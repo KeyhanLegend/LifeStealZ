@@ -16,8 +16,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import com.zetaplugins.lifestealz.LifeStealZ;
 import com.zetaplugins.lifestealz.util.commands.CommandUtils;
 import com.zetaplugins.lifestealz.util.customblocks.CustomBlock;
@@ -41,9 +40,12 @@ public final class InventoryClickListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         Inventory openInventory = player.getOpenInventory().getTopInventory();
 
-        if (handleRecipeGuiClick(event, player, openInventory)) return;
-        if (handleReviveGuiClick(event, player, openInventory)) return;
-        if (handleBeaconReviveGuiClick(event, player, openInventory)) return;
+        if (handleRecipeGuiClick(event, player, openInventory))
+            return;
+        if (handleReviveGuiClick(event, player, openInventory))
+            return;
+        if (handleBeaconReviveGuiClick(event, player, openInventory))
+            return;
 
         if (event.getCurrentItem() != null && CustomItemManager.isForbiddenItem(event.getCurrentItem())) {
             event.setCancelled(true);
@@ -53,13 +55,15 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Handles clicks in the recipe GUI.
-     * @param event The InventoryClickEvent to handle.
-     * @param player The player who clicked in the inventory.
+     * 
+     * @param event         The InventoryClickEvent to handle.
+     * @param player        The player who clicked in the inventory.
      * @param openInventory The inventory that is currently open for the player.
      * @return true if the event was handled, false otherwise.
      */
     private boolean handleRecipeGuiClick(InventoryClickEvent event, Player player, Inventory openInventory) {
-        if (!openInventory.equals(GuiManager.RECIPE_GUI_MAP.get(player.getUniqueId()))) return false;
+        if (!openInventory.equals(GuiManager.RECIPE_GUI_MAP.get(player.getUniqueId())))
+            return false;
 
         event.setCancelled(true);
         ItemStack currentItem = event.getCurrentItem();
@@ -73,17 +77,20 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Handles clicks in the revive GUI.
-     * @param event The InventoryClickEvent to handle.
-     * @param player The player who clicked in the inventory.
+     * 
+     * @param event         The InventoryClickEvent to handle.
+     * @param player        The player who clicked in the inventory.
      * @param openInventory The inventory that is currently open for the player.
      * @return true if the event was handled, false otherwise.
      */
     private boolean handleReviveGuiClick(InventoryClickEvent event, Player player, Inventory openInventory) {
-        if (!openInventory.equals(GuiManager.REVIVE_GUI_MAP.get(player.getUniqueId()))) return false;
+        if (!openInventory.equals(GuiManager.REVIVE_GUI_MAP.get(player.getUniqueId())))
+            return false;
 
         event.setCancelled(true);
         ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType() == Material.AIR) return true;
+        if (item == null || item.getType() == Material.AIR)
+            return true;
 
         switch (item.getType()) {
             case BARRIER -> player.closeInventory();
@@ -97,24 +104,28 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Handles clicks in the beacon revive GUI.
-     * @param event The InventoryClickEvent to handle.
-     * @param player The player who clicked in the inventory.
+     * 
+     * @param event         The InventoryClickEvent to handle.
+     * @param player        The player who clicked in the inventory.
      * @param openInventory The inventory that is currently open for the player.
      * @return true if the event was handled, false otherwise.
      */
     private boolean handleBeaconReviveGuiClick(InventoryClickEvent event, Player player, Inventory openInventory) {
-        if (!openInventory.equals(GuiManager.REVIVE_BEACON_GUI_MAP.get(player.getUniqueId()))) return false;
+        if (!openInventory.equals(GuiManager.REVIVE_BEACON_GUI_MAP.get(player.getUniqueId())))
+            return false;
 
         Location beaconLocation = GuiManager.REVIVE_BEACON_INVENTORY_LOCATIONS.get(player.getUniqueId());
 
         if (beaconLocation == null) {
-            player.sendMessage(Component.text("§cAn error occurred while fetching the beacon location! Please try again."));
+            player.sendMessage(
+                    Component.text("§cAn error occurred while fetching the beacon location! Please try again."));
             return false;
         }
 
         event.setCancelled(true);
         ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType() == Material.AIR) return true;
+        if (item == null || item.getType() == Material.AIR)
+            return true;
 
         switch (item.getType()) {
             case BARRIER -> player.closeInventory();
@@ -128,8 +139,9 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Handles the click on a revive item in the inventory.
-     * @param item The ItemStack that was clicked, representing a revive item.
-     * @param player The player who clicked the item.
+     * 
+     * @param item    The ItemStack that was clicked, representing a revive item.
+     * @param player  The player who clicked the item.
      * @param bedrock Whether the item is for Bedrock edition.
      */
     private void handleReviveClick(ItemStack item, Player player, boolean bedrock) {
@@ -139,18 +151,21 @@ public final class InventoryClickListener implements Listener {
         }
 
         String uuidString = getLastLineOfLore(item, bedrock);
-        if (uuidString == null) return;
+        if (uuidString == null)
+            return;
 
         UUID uuid = UUID.fromString(uuidString);
         OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(uuid);
 
         if (target.getName() == null) {
-            player.sendMessage(Component.text("§cAn error occurred while fetching playerdata! Are you sure this is a real player?"));
+            player.sendMessage(Component
+                    .text("§cAn error occurred while fetching playerdata! Are you sure this is a real player?"));
             return;
         }
 
         if (!hasReviveCrystal(player)) {
-            plugin.getLogger().warning("Player " + player.getName() + " tried to revive " + target.getName() + " without a revive crystal!");
+            plugin.getLogger().warning("Player " + player.getName() + " tried to revive " + target.getName()
+                    + " without a revive crystal!");
             return;
         }
 
@@ -159,10 +174,13 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Handles the click on a revive beacon item in the inventory.
-     * @param item The ItemStack that was clicked, representing a revive beacon item.
-     * @param player The player who clicked the item.
-     * @param bedrock Whether the item is for Bedrock edition.
-     * @param beaconLocation The location of the beacon where the revive is being initiated.
+     * 
+     * @param item           The ItemStack that was clicked, representing a revive
+     *                       beacon item.
+     * @param player         The player who clicked the item.
+     * @param bedrock        Whether the item is for Bedrock edition.
+     * @param beaconLocation The location of the beacon where the revive is being
+     *                       initiated.
      */
     private void handleBeaconReviveClick(ItemStack item, Player player, boolean bedrock, Location beaconLocation) {
         if (!player.hasPermission("lifestealz.revive")) {
@@ -174,19 +192,20 @@ public final class InventoryClickListener implements Listener {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "reviveBeaconAlreadyInUse",
-                    "&cThis revive beacon is already in use! Please wait until the current revive is finished."
-            ));
+                    "&cThis revive beacon is already in use! Please wait until the current revive is finished."));
             return;
         }
 
         String uuidString = getLastLineOfLore(item, bedrock);
-        if (uuidString == null) return;
+        if (uuidString == null)
+            return;
 
         UUID uuid = UUID.fromString(uuidString);
         OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(uuid);
 
         if (target.getName() == null) {
-            player.sendMessage(Component.text("§cAn error occurred while fetching playerdata! Are you sure this is a real player?"));
+            player.sendMessage(Component
+                    .text("§cAn error occurred while fetching playerdata! Are you sure this is a real player?"));
             return;
         }
 
@@ -196,8 +215,7 @@ public final class InventoryClickListener implements Listener {
             player.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "alreadyRevivingPlayer",
-                    "&cThis player is already being revived by another beacon! Please wait until the current revive is finished."
-            ));
+                    "&cThis player is already being revived by another beacon! Please wait until the current revive is finished."));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             player.closeInventory();
             return;
@@ -208,9 +226,10 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Checks if the player can revive the target player.
+     * 
      * @param reviver The player who is trying to revive another player.
-     * @param target The player who is being revived (OfflinePlayer).
-     * @param data The PlayerData of the target player.
+     * @param target  The player who is being revived (OfflinePlayer).
+     * @param data    The PlayerData of the target player.
      * @return true if the player can revive the target, false otherwise.
      */
     private boolean canRevivePlayer(Player reviver, OfflinePlayer target, PlayerData data) {
@@ -222,8 +241,7 @@ public final class InventoryClickListener implements Listener {
                     false,
                     "reviveMaxReached",
                     "&cThis player has already been revived %amount% times!",
-                    new MessageUtils.Replaceable("%amount%", String.valueOf(data.getHasBeenRevived()))
-            ));
+                    new MessageUtils.Replaceable("%amount%", String.valueOf(data.getHasBeenRevived()))));
             return false;
         }
 
@@ -231,8 +249,7 @@ public final class InventoryClickListener implements Listener {
             reviver.sendMessage(MessageUtils.getAndFormatMsg(
                     false,
                     "onlyReviveElimPlayers",
-                    "&cYou can only revive eliminated players!"
-            ));
+                    "&cYou can only revive eliminated players!"));
             return false;
         }
 
@@ -241,6 +258,7 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Modifes the data of the player being revived.
+     * 
      * @param data The PlayerData of the player being revived.
      */
     private void applyReviveData(PlayerData data) {
@@ -251,9 +269,11 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Executes common actions after a player has been revived.
-     * @param reviver The player who revived the target.
-     * @param target The player who was revived (OfflinePlayer).
-     * @param location The location where the revive took place as a String Array containing the X, Y and Z value, or "null" if not applicable.
+     * 
+     * @param reviver  The player who revived the target.
+     * @param target   The player who was revived (OfflinePlayer).
+     * @param location The location where the revive took place as a String Array
+     *                 containing the X, Y and Z value, or "null" if not applicable.
      */
     private void executeReviveActions(Player reviver, OfflinePlayer target, String[] location) {
         plugin.getEliminatedPlayersCache().removeEliminatedPlayer(target.getName());
@@ -262,8 +282,7 @@ public final class InventoryClickListener implements Listener {
                 true,
                 "reviveSuccess",
                 "&7You successfully revived &c%player%&7!",
-                new MessageUtils.Replaceable("%player%", target.getName())
-        ));
+                new MessageUtils.Replaceable("%player%", target.getName())));
         reviver.playSound(reviver.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 500.0f, 1.0f);
 
         for (String command : plugin.getConfig().getStringList("reviveuseCommands")) {
@@ -277,21 +296,24 @@ public final class InventoryClickListener implements Listener {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
         }
 
-        plugin.getWebHookManager().sendWebhookMessage(WebHookManager.WebHookType.REVIVE, target.getName(), reviver.getName());
+        plugin.getWebHookManager().sendWebhookMessage(WebHookManager.WebHookType.REVIVE, target.getName(),
+                reviver.getName());
     }
 
     /**
      * Revives a player from the normal revive GUI.
-     * @param reviver The player who is reviving another player.
-     * @param target The player who is being revived (OfflinePlayer).
+     * 
+     * @param reviver   The player who is reviving another player.
+     * @param target    The player who is being revived (OfflinePlayer).
      * @param isBedrock Whether the revive is for Bedrock edition.
      */
     private void revivePlayer(Player reviver, OfflinePlayer target, boolean isBedrock) {
         PlayerData data = plugin.getStorage().load(target.getUniqueId());
 
-        if (!canRevivePlayer(reviver, target, data)) return;
+        if (!canRevivePlayer(reviver, target, data))
+            return;
 
-        String[] locationNull = {"null", "null", "null"};
+        String[] locationNull = { "null", "null", "null" };
         applyReviveData(data);
         executeReviveActions(reviver, target, locationNull);
         removeReviveCrystal(reviver);
@@ -300,10 +322,12 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Revives a player using a revive beacon.
-     * @param reviver The player who is reviving another player.
-     * @param target The player who is being revived (OfflinePlayer).
-     * @param isBedrock Whether the revive is for Bedrock edition.
-     * @param beaconLocation The location of the beacon where the revive is being initiated.
+     * 
+     * @param reviver        The player who is reviving another player.
+     * @param target         The player who is being revived (OfflinePlayer).
+     * @param isBedrock      Whether the revive is for Bedrock edition.
+     * @param beaconLocation The location of the beacon where the revive is being
+     *                       initiated.
      */
     private void beaconRevivePlayer(Player reviver, OfflinePlayer target, boolean isBedrock, Location beaconLocation) {
         PlayerData data = plugin.getStorage().load(target.getUniqueId());
@@ -317,17 +341,18 @@ public final class InventoryClickListener implements Listener {
             return;
         }
 
-        if (!canRevivePlayer(reviver, target, data)) return;
+        if (!canRevivePlayer(reviver, target, data))
+            return;
 
-        String[] location = {String.valueOf(beaconLocation.getBlockX()), String.valueOf(beaconLocation.getBlockY()), String.valueOf(beaconLocation.getBlockZ())};
+        String[] location = { String.valueOf(beaconLocation.getBlockX()), String.valueOf(beaconLocation.getBlockY()),
+                String.valueOf(beaconLocation.getBlockZ()) };
 
         reviver.sendMessage(MessageUtils.getAndFormatMsg(
                 true,
                 "reviveBeaconStart",
                 "&c%player% &7will be revived in &c%seconds% seconds&7! Please wait...",
                 new MessageUtils.Replaceable("%player%", target.getName()),
-                new MessageUtils.Replaceable("%seconds%", String.valueOf(itemData.getReviveTime()))
-        ));
+                new MessageUtils.Replaceable("%seconds%", String.valueOf(itemData.getReviveTime()))));
 
         reviver.closeInventory();
 
@@ -350,22 +375,19 @@ public final class InventoryClickListener implements Listener {
                 itemData.getParticleColor(),
                 itemData.getInnerLaser(),
                 itemData.getOuterLaser(),
-                itemData.getReviveTime()
-        );
+                itemData.getReviveTime());
 
-        BukkitTask reviveTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                applyReviveData(data);
-                executeReviveActions(reviver, target, location);
+        // Execute revive logic
+        WrappedTask reviveTask = plugin.getFoliaLib().getScheduler().runAtLocationLater(beaconLocation, () -> {
+            applyReviveData(data);
+            executeReviveActions(reviver, target, location);
 
-                plugin.getReviveTaskManager().removeReviveTask(beaconLocation);
+            plugin.getReviveTaskManager().removeReviveTask(beaconLocation);
 
-                plugin.getReviveBeaconEffectManager().clearAllEffects(beaconLocation);
-                beaconLocation.getBlock().setType(Material.AIR);
-                beaconLocation.getWorld().playSound(beaconLocation, Sound.ENTITY_PLAYER_LEVELUP, 500.0f, 1.0f);
-            }
-        }.runTaskLater(plugin, itemData.getReviveTime() * 20L);
+            plugin.getReviveBeaconEffectManager().clearAllEffects(beaconLocation);
+            beaconLocation.getBlock().setType(Material.AIR);
+            beaconLocation.getWorld().playSound(beaconLocation, Sound.ENTITY_PLAYER_LEVELUP, 500.0f, 1.0f);
+        }, itemData.getReviveTime() * 20L);
 
         plugin.getReviveTaskManager().addReviveTask(beaconLocation, new ReviveTask(
                 beaconLocation,
@@ -373,8 +395,7 @@ public final class InventoryClickListener implements Listener {
                 reviver.getUniqueId(),
                 target.getUniqueId(),
                 System.currentTimeMillis() / 1000L,
-                itemData.getReviveTime()
-        ));
+                itemData.getReviveTime()));
     }
 
     /**
@@ -392,6 +413,7 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Throws a permission error message to the player.
+     * 
      * @param player The player who lacks the required permission.
      */
     private void throwPermissionError(HumanEntity player) {
@@ -400,14 +422,17 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Retrieves the last line of lore from an item.
-     * @param item The ItemStack from which to retrieve the lore.
+     * 
+     * @param item    The ItemStack from which to retrieve the lore.
      * @param bedrock Whether the item is for Bedrock edition.
-     * @return The last line of lore as a String, or null if the lore is not available or too short.
+     * @return The last line of lore as a String, or null if the lore is not
+     *         available or too short.
      */
     private String getLastLineOfLore(ItemStack item, boolean bedrock) {
         PlainTextComponentSerializer plainSerializer = PlainTextComponentSerializer.plainText();
         List<Component> lore = item.lore();
-        if (lore == null || lore.size() < (bedrock ? 2 : 1)) return null;
+        if (lore == null || lore.size() < (bedrock ? 2 : 1))
+            return null;
         int line = bedrock ? 2 : 1;
         Component lastLore = lore.get(lore.size() - line);
         return plainSerializer.serialize(lastLore);
@@ -415,12 +440,14 @@ public final class InventoryClickListener implements Listener {
 
     /**
      * Checks if the player has a revive crystal in their inventory.
+     * 
      * @param player The player to check.
      * @return true if the player has a revive crystal, false otherwise.
      */
     private boolean hasReviveCrystal(Player player) {
         for (ItemStack item : player.getInventory().getContents()) {
-            if (item != null && CustomItemManager.isReviveItem(item)) return true;
+            if (item != null && CustomItemManager.isReviveItem(item))
+                return true;
         }
         return false;
     }

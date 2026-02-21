@@ -2,23 +2,17 @@ package com.zetaplugins.lifestealz.events.death;
 
 import com.zetaplugins.lifestealz.events.ZPlayerDeathEventBase;
 import com.zetaplugins.lifestealz.util.MessageUtils;
-import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class ZPlayerHeartGainCooldownEvent extends ZPlayerDeathEventBase {
-    @Getter
-    private final Player killer;
+        private final Player killer;
     
-    @Getter
-    private final long timeLeftOnCooldown;
+        private final long timeLeftOnCooldown;
     
-    @Getter @Setter
     private boolean shouldDropHeartsInstead;
     
-    @Getter @Setter
     private Component cooldownMessage;
 
     public ZPlayerHeartGainCooldownEvent(PlayerDeathEvent originalEvent, Player killer, long timeLeft) {
@@ -33,4 +27,29 @@ public class ZPlayerHeartGainCooldownEvent extends ZPlayerDeathEventBase {
                 new MessageUtils.Replaceable("%time%", MessageUtils.formatTime(timeLeft))
         );
     }
+
+    public Player getKiller() {
+        return killer;
+    }
+
+    public long getTimeLeftOnCooldown() {
+        return timeLeftOnCooldown;
+    }
+
+    public boolean isShouldDropHeartsInstead() {
+        return shouldDropHeartsInstead;
+    }
+
+    public void setShouldDropHeartsInstead(boolean shouldDropHeartsInstead) {
+        this.shouldDropHeartsInstead = shouldDropHeartsInstead;
+    }
+
+    public Component getCooldownMessage() {
+        return cooldownMessage;
+    }
+
+    public void setCooldownMessage(Component cooldownMessage) {
+        this.cooldownMessage = cooldownMessage;
+    }
+
 }
